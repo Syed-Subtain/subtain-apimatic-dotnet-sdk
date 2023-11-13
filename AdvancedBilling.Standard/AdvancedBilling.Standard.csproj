@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ - AdvancedBilling.Standard
+ -
+ - This file was automatically generated for Maxio by APIMATIC v3.0 ( https://www.apimatic.io ).
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SubtainApimaticSDK</AssemblyName>
+    <Version>1.0.0.0</Version>
+    <Authors>Subtain</Authors>
+    <Owners></Owners>
+    <Product>AdvancedBilling.Standard</Product>
+    <Copyright>Copyright ©  2019</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Description>This is a test package publishing, Please ignore</Description>
+    <LangVersion>7.3</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PackageId>SubtainApimaticSDK</PackageId>
+    <PackageTags>apimatic ;Test</PackageTags>
+    <RepositoryUrl>https://github.com/Syed-Subtain/subtain-apimatic-dotnet-sdk.git</RepositoryUrl>
+    <PackRepositoryTypeageId>git</PackRepositoryTypeageId>
+    <PackageProjectUrl>https://apimatic.io</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include= "APIMatic.Core" Version= "0.3.*" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\LICENSE" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>
