@@ -12,14 +12,14 @@ SubscriptionStatusController subscriptionStatusController = client.SubscriptionS
 
 * [Retry Subscription](../../doc/controllers/subscription-status.md#retry-subscription)
 * [Cancel Subscription](../../doc/controllers/subscription-status.md#cancel-subscription)
+* [Update Automatic Subscription Resumption](../../doc/controllers/subscription-status.md#update-automatic-subscription-resumption)
 * [Resume Subscription](../../doc/controllers/subscription-status.md#resume-subscription)
 * [Pause Subscription](../../doc/controllers/subscription-status.md#pause-subscription)
-* [Update Automatic Subscription Resumption](../../doc/controllers/subscription-status.md#update-automatic-subscription-resumption)
 * [Reactivate Subscription](../../doc/controllers/subscription-status.md#reactivate-subscription)
-* [Initiate Delayed Cancellation](../../doc/controllers/subscription-status.md#initiate-delayed-cancellation)
-* [Stop Delayed Cancellation](../../doc/controllers/subscription-status.md#stop-delayed-cancellation)
 * [Cancel Dunning](../../doc/controllers/subscription-status.md#cancel-dunning)
 * [Preview Renewal](../../doc/controllers/subscription-status.md#preview-renewal)
+* [Initiate Delayed Cancellation](../../doc/controllers/subscription-status.md#initiate-delayed-cancellation)
+* [Stop Delayed Cancellation](../../doc/controllers/subscription-status.md#stop-delayed-cancellation)
 
 
 # Retry Subscription
@@ -388,6 +388,182 @@ catch (ApiException e)
 | 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
 
 
+# Update Automatic Subscription Resumption
+
+Once a subscription has been paused / put on hold, you can update the date which was specified to automatically resume the subscription.
+
+To update a subscription's resume date, use this method to change or update the `automatically_resume_at` date.
+
+### Remove the resume date
+
+Alternately, you can change the `automatically_resume_at` to `null` if you would like the subscription to not have a resume date.
+
+```csharp
+UpdateAutomaticSubscriptionResumptionAsync(
+    string subscriptionId,
+    Models.PauseRequest body = null)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
+| `body` | [`PauseRequest`](../../doc/models/pause-request.md) | Body, Optional | Allows to pause a Subscription |
+
+## Response Type
+
+[`Task<Models.SubscriptionResponse>`](../../doc/models/subscription-response.md)
+
+## Example Usage
+
+```csharp
+string subscriptionId = "subscription_id0";
+PauseRequest body = new PauseRequest
+{
+    Hold = new AutoResume
+    {
+        AutomaticallyResumeAt = "2019-01-20",
+    },
+};
+
+try
+{
+    SubscriptionResponse result = await subscriptionStatusController.UpdateAutomaticSubscriptionResumptionAsync(
+        subscriptionId,
+        body
+    );
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Example Response *(as JSON)*
+
+```json
+{
+  "subscription": {
+    "id": 20359140,
+    "state": "on_hold",
+    "trial_started_at": null,
+    "trial_ended_at": null,
+    "activated_at": "2018-01-05T17:15:50-06:00",
+    "created_at": "2018-01-05T17:15:49-06:00",
+    "updated_at": "2018-01-09T10:26:14-06:00",
+    "expires_at": null,
+    "balance_in_cents": 0,
+    "current_period_ends_at": "2023-01-05T17:15:00-06:00",
+    "next_assessment_at": "2023-01-05T17:15:00-06:00",
+    "canceled_at": null,
+    "cancellation_message": null,
+    "next_product_id": null,
+    "cancel_at_end_of_period": false,
+    "payment_collection_method": "automatic",
+    "snap_day": null,
+    "cancellation_method": null,
+    "current_period_started_at": "2018-01-05T17:15:49-06:00",
+    "previous_state": "active",
+    "signup_payment_id": 219829722,
+    "signup_revenue": "100.00",
+    "delayed_cancel_at": null,
+    "coupon_code": null,
+    "total_revenue_in_cents": 10009991,
+    "product_price_in_cents": 10000,
+    "product_version_number": 1,
+    "payment_type": "credit_card",
+    "referral_code": "8y7jqr",
+    "coupon_use_count": null,
+    "coupon_uses_allowed": null,
+    "reason_code": null,
+    "automatically_resume_at": "2019-01-20T00:00:00-06:00",
+    "coupon_codes": [],
+    "customer": {
+      "id": 19948683,
+      "first_name": "Vanessa",
+      "last_name": "Test",
+      "organization": "",
+      "email": "vanessa@example.com",
+      "created_at": "2018-01-05T17:15:49-06:00",
+      "updated_at": "2018-01-05T17:15:51-06:00",
+      "reference": null,
+      "address": "123 Anywhere Ln",
+      "address_2": "",
+      "city": "Boston",
+      "state": "MA",
+      "zip": "02120",
+      "country": "US",
+      "phone": "555-555-1212",
+      "portal_invite_last_sent_at": "2018-01-05T17:15:51-06:00",
+      "portal_invite_last_accepted_at": null,
+      "verified": null,
+      "portal_customer_created_at": "2018-01-05T17:15:51-06:00",
+      "cc_emails": null,
+      "tax_exempt": false
+    },
+    "product": {
+      "id": 4535643,
+      "name": "Annual Product",
+      "handle": "annual-product",
+      "description": "",
+      "accounting_code": "",
+      "request_credit_card": true,
+      "expiration_interval": null,
+      "expiration_interval_unit": "never",
+      "created_at": "2017-08-25T10:25:31-05:00",
+      "updated_at": "2017-08-25T10:25:31-05:00",
+      "price_in_cents": 10000,
+      "interval": 12,
+      "interval_unit": "month",
+      "initial_charge_in_cents": null,
+      "trial_price_in_cents": null,
+      "trial_interval": null,
+      "trial_interval_unit": "month",
+      "archived_at": null,
+      "require_credit_card": true,
+      "return_params": "",
+      "taxable": false,
+      "update_return_url": "",
+      "tax_code": "",
+      "initial_charge_after_trial": false,
+      "version_number": 1,
+      "update_return_params": "",
+      "product_family": {
+        "id": 1025627,
+        "name": "Acme Products",
+        "description": "",
+        "handle": "acme-products",
+        "accounting_code": null
+      },
+      "public_signup_pages": []
+    },
+    "credit_card": {
+      "id": 13826563,
+      "first_name": "Bomb 3",
+      "last_name": "Test",
+      "masked_card_number": "XXXX-XXXX-XXXX-1",
+      "card_type": "bogus",
+      "expiration_month": 1,
+      "expiration_year": 2028,
+      "customer_id": 19948683,
+      "current_vault": "bogus",
+      "vault_token": "1",
+      "billing_address": "123 Anywhere Lane",
+      "billing_city": "Boston",
+      "billing_state": "Ma",
+      "billing_zip": "02120",
+      "billing_country": "US",
+      "customer_vault_token": null,
+      "billing_address_2": "",
+      "payment_type": "credit_card"
+    }
+  }
+}
+```
+
+
 # Resume Subscription
 
 Resume a paused (on-hold) subscription. If the normal next renewal date has not passed, the subscription will return to active and will renew on that date.  Otherwise, it will behave like a reactivation, setting the billing date to 'now' and charging the subscriber.
@@ -403,7 +579,7 @@ ResumeSubscriptionAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
-| `calendarBillingResumptionCharge` | [`ResumptionCharge?`](../../doc/models/resumption-charge.md) | Query, Optional | (For calendar billing subscriptions only) The way that the resumed subscription's charge should be handled<br>**Default**: `ResumptionCharge.prorated` |
+| `calendarBillingResumptionCharge` | [`ResumptionCharge?`](../../doc/models/resumption-charge.md) | Query, Optional | (For calendar billing subscriptions only) The way that the resumed subscription's charge should be handled |
 
 ## Response Type
 
@@ -699,182 +875,6 @@ catch (ApiException e)
 | HTTP Status Code | Error Description | Exception Class |
 |  --- | --- | --- |
 | 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-
-
-# Update Automatic Subscription Resumption
-
-Once a subscription has been paused / put on hold, you can update the date which was specified to automatically resume the subscription.
-
-To update a subscription's resume date, use this method to change or update the `automatically_resume_at` date.
-
-### Remove the resume date
-
-Alternately, you can change the `automatically_resume_at` to `null` if you would like the subscription to not have a resume date.
-
-```csharp
-UpdateAutomaticSubscriptionResumptionAsync(
-    string subscriptionId,
-    Models.PauseRequest body = null)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
-| `body` | [`PauseRequest`](../../doc/models/pause-request.md) | Body, Optional | Allows to pause a Subscription |
-
-## Response Type
-
-[`Task<Models.SubscriptionResponse>`](../../doc/models/subscription-response.md)
-
-## Example Usage
-
-```csharp
-string subscriptionId = "subscription_id0";
-PauseRequest body = new PauseRequest
-{
-    Hold = new AutoResume
-    {
-        AutomaticallyResumeAt = "2019-01-20",
-    },
-};
-
-try
-{
-    SubscriptionResponse result = await subscriptionStatusController.UpdateAutomaticSubscriptionResumptionAsync(
-        subscriptionId,
-        body
-    );
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Example Response *(as JSON)*
-
-```json
-{
-  "subscription": {
-    "id": 20359140,
-    "state": "on_hold",
-    "trial_started_at": null,
-    "trial_ended_at": null,
-    "activated_at": "2018-01-05T17:15:50-06:00",
-    "created_at": "2018-01-05T17:15:49-06:00",
-    "updated_at": "2018-01-09T10:26:14-06:00",
-    "expires_at": null,
-    "balance_in_cents": 0,
-    "current_period_ends_at": "2023-01-05T17:15:00-06:00",
-    "next_assessment_at": "2023-01-05T17:15:00-06:00",
-    "canceled_at": null,
-    "cancellation_message": null,
-    "next_product_id": null,
-    "cancel_at_end_of_period": false,
-    "payment_collection_method": "automatic",
-    "snap_day": null,
-    "cancellation_method": null,
-    "current_period_started_at": "2018-01-05T17:15:49-06:00",
-    "previous_state": "active",
-    "signup_payment_id": 219829722,
-    "signup_revenue": "100.00",
-    "delayed_cancel_at": null,
-    "coupon_code": null,
-    "total_revenue_in_cents": 10009991,
-    "product_price_in_cents": 10000,
-    "product_version_number": 1,
-    "payment_type": "credit_card",
-    "referral_code": "8y7jqr",
-    "coupon_use_count": null,
-    "coupon_uses_allowed": null,
-    "reason_code": null,
-    "automatically_resume_at": "2019-01-20T00:00:00-06:00",
-    "coupon_codes": [],
-    "customer": {
-      "id": 19948683,
-      "first_name": "Vanessa",
-      "last_name": "Test",
-      "organization": "",
-      "email": "vanessa@example.com",
-      "created_at": "2018-01-05T17:15:49-06:00",
-      "updated_at": "2018-01-05T17:15:51-06:00",
-      "reference": null,
-      "address": "123 Anywhere Ln",
-      "address_2": "",
-      "city": "Boston",
-      "state": "MA",
-      "zip": "02120",
-      "country": "US",
-      "phone": "555-555-1212",
-      "portal_invite_last_sent_at": "2018-01-05T17:15:51-06:00",
-      "portal_invite_last_accepted_at": null,
-      "verified": null,
-      "portal_customer_created_at": "2018-01-05T17:15:51-06:00",
-      "cc_emails": null,
-      "tax_exempt": false
-    },
-    "product": {
-      "id": 4535643,
-      "name": "Annual Product",
-      "handle": "annual-product",
-      "description": "",
-      "accounting_code": "",
-      "request_credit_card": true,
-      "expiration_interval": null,
-      "expiration_interval_unit": "never",
-      "created_at": "2017-08-25T10:25:31-05:00",
-      "updated_at": "2017-08-25T10:25:31-05:00",
-      "price_in_cents": 10000,
-      "interval": 12,
-      "interval_unit": "month",
-      "initial_charge_in_cents": null,
-      "trial_price_in_cents": null,
-      "trial_interval": null,
-      "trial_interval_unit": "month",
-      "archived_at": null,
-      "require_credit_card": true,
-      "return_params": "",
-      "taxable": false,
-      "update_return_url": "",
-      "tax_code": "",
-      "initial_charge_after_trial": false,
-      "version_number": 1,
-      "update_return_params": "",
-      "product_family": {
-        "id": 1025627,
-        "name": "Acme Products",
-        "description": "",
-        "handle": "acme-products",
-        "accounting_code": null
-      },
-      "public_signup_pages": []
-    },
-    "credit_card": {
-      "id": 13826563,
-      "first_name": "Bomb 3",
-      "last_name": "Test",
-      "masked_card_number": "XXXX-XXXX-XXXX-1",
-      "card_type": "bogus",
-      "expiration_month": 1,
-      "expiration_year": 2028,
-      "customer_id": 19948683,
-      "current_vault": "bogus",
-      "vault_token": "1",
-      "billing_address": "123 Anywhere Lane",
-      "billing_city": "Boston",
-      "billing_state": "Ma",
-      "billing_zip": "02120",
-      "billing_country": "US",
-      "customer_vault_token": null,
-      "billing_address_2": "",
-      "payment_type": "credit_card"
-    }
-  }
-}
-```
 
 
 # Reactivate Subscription
@@ -1204,104 +1204,6 @@ catch (ApiException e)
 | 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
 
 
-# Initiate Delayed Cancellation
-
-Chargify offers the ability to cancel a subscription at the end of the current billing period. This period is set by its current product.
-
-Requesting to cancel the subscription at the end of the period sets the `cancel_at_end_of_period` flag to true.
-
-Note that you cannot set `cancel_at_end_of_period` at subscription creation, or if the subscription is past due.
-
-```csharp
-InitiateDelayedCancellationAsync(
-    string subscriptionId,
-    Models.CancellationRequest body = null)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
-| `body` | [`CancellationRequest`](../../doc/models/cancellation-request.md) | Body, Optional | - |
-
-## Response Type
-
-[`Task<Models.DelayedCancellationResponse>`](../../doc/models/delayed-cancellation-response.md)
-
-## Example Usage
-
-```csharp
-string subscriptionId = "subscription_id0";
-try
-{
-    DelayedCancellationResponse result = await subscriptionStatusController.InitiateDelayedCancellationAsync(subscriptionId);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 404 | Not Found | `ApiException` |
-
-
-# Stop Delayed Cancellation
-
-Removing the delayed cancellation on a subscription will ensure that it doesn't get canceled at the end of the period that it is in. The request will reset the `cancel_at_end_of_period` flag to `false`.
-
-This endpoint is idempotent. If the subscription was not set to cancel in the future, removing the delayed cancellation has no effect and the call will be successful.
-
-```csharp
-StopDelayedCancellationAsync(
-    string subscriptionId)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
-
-## Response Type
-
-[`Task<Models.DelayedCancellationResponse>`](../../doc/models/delayed-cancellation-response.md)
-
-## Example Usage
-
-```csharp
-string subscriptionId = "subscription_id0";
-try
-{
-    DelayedCancellationResponse result = await subscriptionStatusController.StopDelayedCancellationAsync(subscriptionId);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Example Response *(as JSON)*
-
-```json
-{
-  "message": "This subscription will no longer be canceled"
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 404 | Not Found | `ApiException` |
-
-
 # Cancel Dunning
 
 If a subscription is currently in dunning, the subscription will be set to active and the active Dunner will be resolved.
@@ -1461,4 +1363,102 @@ catch (ApiException e)
   }
 }
 ```
+
+
+# Initiate Delayed Cancellation
+
+Chargify offers the ability to cancel a subscription at the end of the current billing period. This period is set by its current product.
+
+Requesting to cancel the subscription at the end of the period sets the `cancel_at_end_of_period` flag to true.
+
+Note that you cannot set `cancel_at_end_of_period` at subscription creation, or if the subscription is past due.
+
+```csharp
+InitiateDelayedCancellationAsync(
+    string subscriptionId,
+    Models.CancellationRequest body = null)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
+| `body` | [`CancellationRequest`](../../doc/models/cancellation-request.md) | Body, Optional | - |
+
+## Response Type
+
+[`Task<Models.DelayedCancellationResponse>`](../../doc/models/delayed-cancellation-response.md)
+
+## Example Usage
+
+```csharp
+string subscriptionId = "subscription_id0";
+try
+{
+    DelayedCancellationResponse result = await subscriptionStatusController.InitiateDelayedCancellationAsync(subscriptionId);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 404 | Not Found | `ApiException` |
+
+
+# Stop Delayed Cancellation
+
+Removing the delayed cancellation on a subscription will ensure that it doesn't get canceled at the end of the period that it is in. The request will reset the `cancel_at_end_of_period` flag to `false`.
+
+This endpoint is idempotent. If the subscription was not set to cancel in the future, removing the delayed cancellation has no effect and the call will be successful.
+
+```csharp
+StopDelayedCancellationAsync(
+    string subscriptionId)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
+
+## Response Type
+
+[`Task<Models.DelayedCancellationResponse>`](../../doc/models/delayed-cancellation-response.md)
+
+## Example Usage
+
+```csharp
+string subscriptionId = "subscription_id0";
+try
+{
+    DelayedCancellationResponse result = await subscriptionStatusController.StopDelayedCancellationAsync(subscriptionId);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Example Response *(as JSON)*
+
+```json
+{
+  "message": "This subscription will no longer be canceled"
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 404 | Not Found | `ApiException` |
 

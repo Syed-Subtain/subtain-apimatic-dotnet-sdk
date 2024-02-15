@@ -13,7 +13,6 @@ namespace AdvancedBilling.Standard.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Authentication;
     using AdvancedBilling.Standard.Exceptions;
     using AdvancedBilling.Standard.Http.Client;
     using AdvancedBilling.Standard.Utilities;
@@ -55,7 +54,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<List<Models.ProductResponse>>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/product_families/{product_family_id}/products.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("product_family_id", input.ProductFamilyId))
                       .Query(_query => _query.Setup("page", input.Page))
@@ -71,7 +70,7 @@ namespace AdvancedBilling.Standard.Controllers
                       .Query(_query => _query.Setup("filter[use_site_exchange_rate]", input.FilterUseSiteExchangeRate))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method will create a Product Family within your Chargify site. Create a Product Family to act as a container for your products, components and coupons.
@@ -96,13 +95,13 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.ProductFamilyResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Post, "/product_families.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Header(_header => _header.Setup("Content-Type", "application/json"))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method allows to retrieve a list of Product Families for a site.
@@ -125,7 +124,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<List<Models.ProductFamilyResponse>>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/product_families.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Query(_query => _query.Setup("date_field", (input.DateField.HasValue) ? ApiHelper.JsonSerialize(input.DateField.Value).Trim('\"') : null))
                       .Query(_query => _query.Setup("start_date", input.StartDate))
@@ -134,7 +133,7 @@ namespace AdvancedBilling.Standard.Controllers
                       .Query(_query => _query.Setup("end_datetime", input.EndDatetime))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method allows to retrieve a Product Family via the `product_family_id`. The response will contain a Product Family object.
@@ -159,11 +158,11 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.ProductFamilyResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/product_families/{id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("id", id))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
     }
 }

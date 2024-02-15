@@ -899,7 +899,9 @@ namespace AdvancedBilling.Standard.Models
         }
 
         /// <summary>
+        /// <![CDATA[
         /// On Relationship Invoicing, the ID of the individual paying for the subscription. Defaults to the Customer ID unless the 'Customer Hierarchies & WhoPays' feature is enabled.
+        /// ]]>
         /// </summary>
         [JsonProperty("payer_id", NullValueHandling = NullValueHandling.Ignore)]
         public int? PayerId { get; set; }

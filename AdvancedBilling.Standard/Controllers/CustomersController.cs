@@ -13,7 +13,6 @@ namespace AdvancedBilling.Standard.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Authentication;
     using AdvancedBilling.Standard.Exceptions;
     using AdvancedBilling.Standard.Http.Client;
     using AdvancedBilling.Standard.Models.Containers;
@@ -80,14 +79,14 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.CustomerResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Post, "/customers.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Header(_header => _header.Setup("Content-Type", "application/json"))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new CustomerErrorResponseException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This request will by default list all customers associated with your Site.
@@ -128,7 +127,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<List<Models.CustomerResponse>>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/customers.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Query(_query => _query.Setup("direction", input.Direction))
                       .Query(_query => _query.Setup("page", input.Page))
@@ -141,7 +140,63 @@ namespace AdvancedBilling.Standard.Controllers
                       .Query(_query => _query.Setup("q", input.Q))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+        /// <summary>
+        /// Use this method to return the customer object if you have the unique **Reference ID (Your App)** value handy. It will return a single match.
+        /// </summary>
+        /// <param name="reference">Required parameter: Customer reference.</param>
+        /// <returns>Returns the Models.CustomerResponse response from the API call.</returns>
+        public Models.CustomerResponse ReadCustomerByReference(
+                string reference)
+            => CoreHelper.RunTask(ReadCustomerByReferenceAsync(reference));
+
+        /// <summary>
+        /// Use this method to return the customer object if you have the unique **Reference ID (Your App)** value handy. It will return a single match.
+        /// </summary>
+        /// <param name="reference">Required parameter: Customer reference.</param>
+        /// <param name="cancellationToken"> cancellationToken. </param>
+        /// <returns>Returns the Models.CustomerResponse response from the API call.</returns>
+        public async Task<Models.CustomerResponse> ReadCustomerByReferenceAsync(
+                string reference,
+                CancellationToken cancellationToken = default)
+            => await CreateApiCall<Models.CustomerResponse>()
+              .RequestBuilder(_requestBuilder => _requestBuilder
+                  .Setup(HttpMethod.Get, "/customers/lookup.json")
+                  .WithAuth("BasicAuth")
+                  .Parameters(_parameters => _parameters
+                      .Query(_query => _query.Setup("reference", reference).Required())))
+              .ResponseHandler(_responseHandler => _responseHandler
+                  .NullOn404())
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+        /// <summary>
+        /// This method lists all subscriptions that belong to a customer.
+        /// </summary>
+        /// <param name="customerId">Required parameter: The Chargify id of the customer.</param>
+        /// <returns>Returns the List of Models.SubscriptionResponse response from the API call.</returns>
+        public List<Models.SubscriptionResponse> ListCustomerSubscriptions(
+                int customerId)
+            => CoreHelper.RunTask(ListCustomerSubscriptionsAsync(customerId));
+
+        /// <summary>
+        /// This method lists all subscriptions that belong to a customer.
+        /// </summary>
+        /// <param name="customerId">Required parameter: The Chargify id of the customer.</param>
+        /// <param name="cancellationToken"> cancellationToken. </param>
+        /// <returns>Returns the List of Models.SubscriptionResponse response from the API call.</returns>
+        public async Task<List<Models.SubscriptionResponse>> ListCustomerSubscriptionsAsync(
+                int customerId,
+                CancellationToken cancellationToken = default)
+            => await CreateApiCall<List<Models.SubscriptionResponse>>()
+              .RequestBuilder(_requestBuilder => _requestBuilder
+                  .Setup(HttpMethod.Get, "/customers/{customer_id}/subscriptions.json")
+                  .WithAuth("BasicAuth")
+                  .Parameters(_parameters => _parameters
+                      .Template(_template => _template.Setup("customer_id", customerId))))
+              .ResponseHandler(_responseHandler => _responseHandler
+                  .NullOn404())
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method allows to retrieve the Customer properties by Chargify-generated Customer ID.
@@ -164,12 +219,12 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.CustomerResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/customers/{id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("id", id))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method allows to update the Customer.
@@ -196,7 +251,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.CustomerResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Put, "/customers/{id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Template(_template => _template.Setup("id", id))
@@ -204,7 +259,7 @@ namespace AdvancedBilling.Standard.Controllers
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new CustomerErrorResponseException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method allows you to delete the Customer.
@@ -226,65 +281,9 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<VoidType>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Delete, "/customers/{id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("id", id))))
-              .ExecuteAsync(cancellationToken);
-
-        /// <summary>
-        /// Use this method to return the customer object if you have the unique **Reference ID (Your App)** value handy. It will return a single match.
-        /// </summary>
-        /// <param name="reference">Required parameter: Customer reference.</param>
-        /// <returns>Returns the Models.CustomerResponse response from the API call.</returns>
-        public Models.CustomerResponse ReadCustomerByReference(
-                string reference)
-            => CoreHelper.RunTask(ReadCustomerByReferenceAsync(reference));
-
-        /// <summary>
-        /// Use this method to return the customer object if you have the unique **Reference ID (Your App)** value handy. It will return a single match.
-        /// </summary>
-        /// <param name="reference">Required parameter: Customer reference.</param>
-        /// <param name="cancellationToken"> cancellationToken. </param>
-        /// <returns>Returns the Models.CustomerResponse response from the API call.</returns>
-        public async Task<Models.CustomerResponse> ReadCustomerByReferenceAsync(
-                string reference,
-                CancellationToken cancellationToken = default)
-            => await CreateApiCall<Models.CustomerResponse>()
-              .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Get, "/customers/lookup.json")
-                  .WithAuth("global")
-                  .Parameters(_parameters => _parameters
-                      .Query(_query => _query.Setup("reference", reference).Required())))
-              .ResponseHandler(_responseHandler => _responseHandler
-                  .NullOn404())
-              .ExecuteAsync(cancellationToken);
-
-        /// <summary>
-        /// This method lists all subscriptions that belong to a customer.
-        /// </summary>
-        /// <param name="customerId">Required parameter: The Chargify id of the customer.</param>
-        /// <returns>Returns the List of Models.SubscriptionResponse response from the API call.</returns>
-        public List<Models.SubscriptionResponse> ListCustomerSubscriptions(
-                int customerId)
-            => CoreHelper.RunTask(ListCustomerSubscriptionsAsync(customerId));
-
-        /// <summary>
-        /// This method lists all subscriptions that belong to a customer.
-        /// </summary>
-        /// <param name="customerId">Required parameter: The Chargify id of the customer.</param>
-        /// <param name="cancellationToken"> cancellationToken. </param>
-        /// <returns>Returns the List of Models.SubscriptionResponse response from the API call.</returns>
-        public async Task<List<Models.SubscriptionResponse>> ListCustomerSubscriptionsAsync(
-                int customerId,
-                CancellationToken cancellationToken = default)
-            => await CreateApiCall<List<Models.SubscriptionResponse>>()
-              .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Get, "/customers/{customer_id}/subscriptions.json")
-                  .WithAuth("global")
-                  .Parameters(_parameters => _parameters
-                      .Template(_template => _template.Setup("customer_id", customerId))))
-              .ResponseHandler(_responseHandler => _responseHandler
-                  .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
     }
 }

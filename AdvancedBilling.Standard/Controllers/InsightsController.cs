@@ -13,7 +13,6 @@ namespace AdvancedBilling.Standard.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Authentication;
     using AdvancedBilling.Standard.Exceptions;
     using AdvancedBilling.Standard.Http.Client;
     using AdvancedBilling.Standard.Models.Containers;
@@ -34,37 +33,6 @@ namespace AdvancedBilling.Standard.Controllers
         /// Initializes a new instance of the <see cref="InsightsController"/> class.
         /// </summary>
         internal InsightsController(GlobalConfiguration globalConfiguration) : base(globalConfiguration) { }
-
-        /// <summary>
-        /// The Stats API is a very basic view of some Site-level stats. This API call only answers with JSON responses. An XML version is not provided.
-        /// ## Stats Documentation.
-        /// There currently is not a complimentary matching set of documentation that compliments this endpoint. However, each Site's dashboard will reflect the summary of information provided in the Stats reposnse.
-        /// ```.
-        /// https://subdomain.chargify.com/dashboard.
-        /// ```.
-        /// </summary>
-        /// <returns>Returns the Models.SiteSummary response from the API call.</returns>
-        public Models.SiteSummary ReadSiteStats()
-            => CoreHelper.RunTask(ReadSiteStatsAsync());
-
-        /// <summary>
-        /// The Stats API is a very basic view of some Site-level stats. This API call only answers with JSON responses. An XML version is not provided.
-        /// ## Stats Documentation.
-        /// There currently is not a complimentary matching set of documentation that compliments this endpoint. However, each Site's dashboard will reflect the summary of information provided in the Stats reposnse.
-        /// ```.
-        /// https://subdomain.chargify.com/dashboard.
-        /// ```.
-        /// </summary>
-        /// <param name="cancellationToken"> cancellationToken. </param>
-        /// <returns>Returns the Models.SiteSummary response from the API call.</returns>
-        public async Task<Models.SiteSummary> ReadSiteStatsAsync(CancellationToken cancellationToken = default)
-            => await CreateApiCall<Models.SiteSummary>()
-              .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Get, "/stats.json")
-                  .WithAuth("global"))
-              .ResponseHandler(_responseHandler => _responseHandler
-                  .NullOn404())
-              .ExecuteAsync(cancellationToken);
 
         /// <summary>
         /// This endpoint returns your site's current MRR, including plan and usage breakouts.
@@ -93,15 +61,47 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.MRRResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/mrr.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Query(_query => _query.Setup("at_time", atTime.HasValue ? atTime.Value.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK") : null))
                       .Query(_query => _query.Setup("subscription_id", subscriptionId))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
+        /// The Stats API is a very basic view of some Site-level stats. This API call only answers with JSON responses. An XML version is not provided.
+        /// ## Stats Documentation.
+        /// There currently is not a complimentary matching set of documentation that compliments this endpoint. However, each Site's dashboard will reflect the summary of information provided in the Stats reposnse.
+        /// ```.
+        /// https://subdomain.chargify.com/dashboard.
+        /// ```.
+        /// </summary>
+        /// <returns>Returns the Models.SiteSummary response from the API call.</returns>
+        public Models.SiteSummary ReadSiteStats()
+            => CoreHelper.RunTask(ReadSiteStatsAsync());
+
+        /// <summary>
+        /// The Stats API is a very basic view of some Site-level stats. This API call only answers with JSON responses. An XML version is not provided.
+        /// ## Stats Documentation.
+        /// There currently is not a complimentary matching set of documentation that compliments this endpoint. However, each Site's dashboard will reflect the summary of information provided in the Stats reposnse.
+        /// ```.
+        /// https://subdomain.chargify.com/dashboard.
+        /// ```.
+        /// </summary>
+        /// <param name="cancellationToken"> cancellationToken. </param>
+        /// <returns>Returns the Models.SiteSummary response from the API call.</returns>
+        public async Task<Models.SiteSummary> ReadSiteStatsAsync(CancellationToken cancellationToken = default)
+            => await CreateApiCall<Models.SiteSummary>()
+              .RequestBuilder(_requestBuilder => _requestBuilder
+                  .Setup(HttpMethod.Get, "/stats.json")
+                  .WithAuth("BasicAuth"))
+              .ResponseHandler(_responseHandler => _responseHandler
+                  .NullOn404())
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+        /// <summary>
+        /// <![CDATA[
         /// This endpoint returns your site's MRR movements.
         /// ## Understanding MRR movements.
         /// This endpoint will aid in accessing your site's [MRR Report](https://chargify.zendesk.com/hc/en-us/articles/4407838249627) data.
@@ -116,6 +116,7 @@ namespace AdvancedBilling.Standard.Controllers
         /// Usage includes revenue from:.
         /// * Metered Components.
         /// * Prepaid Usage Components.
+        /// ]]>
         /// </summary>
         /// <param name="input">Object containing request parameters.</param>
         /// <returns>Returns the Models.ListMRRResponse response from the API call.</returns>
@@ -125,6 +126,7 @@ namespace AdvancedBilling.Standard.Controllers
             => CoreHelper.RunTask(ReadMrrMovementsAsync(input));
 
         /// <summary>
+        /// <![CDATA[
         /// This endpoint returns your site's MRR movements.
         /// ## Understanding MRR movements.
         /// This endpoint will aid in accessing your site's [MRR Report](https://chargify.zendesk.com/hc/en-us/articles/4407838249627) data.
@@ -139,6 +141,7 @@ namespace AdvancedBilling.Standard.Controllers
         /// Usage includes revenue from:.
         /// * Metered Components.
         /// * Prepaid Usage Components.
+        /// ]]>
         /// </summary>
         /// <param name="input">Object containing request parameters.</param>
         /// <param name="cancellationToken"> cancellationToken. </param>
@@ -150,7 +153,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.ListMRRResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/mrr_movements.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Query(_query => _query.Setup("subscription_id", input.SubscriptionId))
                       .Query(_query => _query.Setup("page", input.Page))
@@ -158,7 +161,7 @@ namespace AdvancedBilling.Standard.Controllers
                       .Query(_query => _query.Setup("direction", input.Direction))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This endpoint returns your site's current MRR, including plan and usage breakouts split per subscription.
@@ -183,7 +186,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.SubscriptionMRRResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/subscriptions_mrr.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Query(_query => _query.Setup("filter[subscription_ids]", input.FilterSubscriptionIds))
                       .Query(_query => _query.Setup("at_time", input.AtTime))
@@ -193,6 +196,6 @@ namespace AdvancedBilling.Standard.Controllers
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("400", CreateErrorCase("Bad Request", (_reason, _context) => new SubscriptionsMrrErrorResponseException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
     }
 }

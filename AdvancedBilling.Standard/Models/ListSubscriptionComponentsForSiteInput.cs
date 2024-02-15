@@ -193,7 +193,9 @@ namespace AdvancedBilling.Standard.Models
         public List<string> FilterCurrencies { get; set; }
 
         /// <summary>
+        /// <![CDATA[
         /// Allows fetching components allocations that belong to the subscription with matching states based on provided values. To use this filter you also have to include the following param in the request `include=subscription`. Use in query `filter[subscription][states]=active,canceled&include=subscription`.
+        /// ]]>
         /// </summary>
         [JsonProperty("filter[subscription][states]", NullValueHandling = NullValueHandling.Ignore)]
         public List<Models.SubscriptionState> FilterSubscriptionStates { get; set; }

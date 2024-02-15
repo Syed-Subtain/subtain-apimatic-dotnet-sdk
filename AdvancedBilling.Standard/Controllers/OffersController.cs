@@ -13,7 +13,6 @@ namespace AdvancedBilling.Standard.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Authentication;
     using AdvancedBilling.Standard.Exceptions;
     using AdvancedBilling.Standard.Http.Client;
     using AdvancedBilling.Standard.Utilities;
@@ -67,14 +66,14 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.OfferResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Post, "/offers.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Header(_header => _header.Setup("Content-Type", "application/json"))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new ErrorMapResponseException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This endpoint will list offers for a site.
@@ -92,10 +91,10 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.ListOffersResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/offers.json")
-                  .WithAuth("global"))
+                  .WithAuth("BasicAuth"))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method allows you to list a specific offer's attributes. This is different than list all offers for a site, as it requires an `offer_id`.
@@ -118,40 +117,13 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.OfferResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/offers/{offer_id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("offer_id", offerId))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
-
-        /// <summary>
-        /// Archive an existing offer. Please provide an `offer_id` in order to archive the correct item.
-        /// </summary>
-        /// <param name="offerId">Required parameter: The Chargify id of the offer.</param>
-        public void ArchiveOffer(
-                int offerId)
-            => CoreHelper.RunVoidTask(ArchiveOfferAsync(offerId));
-
-        /// <summary>
-        /// Archive an existing offer. Please provide an `offer_id` in order to archive the correct item.
-        /// </summary>
-        /// <param name="offerId">Required parameter: The Chargify id of the offer.</param>
-        /// <param name="cancellationToken"> cancellationToken. </param>
-        /// <returns>Returns the void response from the API call.</returns>
-        public async Task ArchiveOfferAsync(
-                int offerId,
-                CancellationToken cancellationToken = default)
-            => await CreateApiCall<VoidType>()
-              .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Put, "/offers/{offer_id}/archive.json")
-                  .WithAuth("global")
-                  .Parameters(_parameters => _parameters
-                      .Template(_template => _template.Setup("offer_id", offerId))))
-              .ResponseHandler(_responseHandler => _responseHandler
-                  .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Unarchive a previously archived offer. Please provide an `offer_id` in order to un-archive the correct item.
@@ -173,11 +145,38 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<VoidType>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Put, "/offers/{offer_id}/unarchive.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("offer_id", offerId))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+        /// <summary>
+        /// Archive an existing offer. Please provide an `offer_id` in order to archive the correct item.
+        /// </summary>
+        /// <param name="offerId">Required parameter: The Chargify id of the offer.</param>
+        public void ArchiveOffer(
+                int offerId)
+            => CoreHelper.RunVoidTask(ArchiveOfferAsync(offerId));
+
+        /// <summary>
+        /// Archive an existing offer. Please provide an `offer_id` in order to archive the correct item.
+        /// </summary>
+        /// <param name="offerId">Required parameter: The Chargify id of the offer.</param>
+        /// <param name="cancellationToken"> cancellationToken. </param>
+        /// <returns>Returns the void response from the API call.</returns>
+        public async Task ArchiveOfferAsync(
+                int offerId,
+                CancellationToken cancellationToken = default)
+            => await CreateApiCall<VoidType>()
+              .RequestBuilder(_requestBuilder => _requestBuilder
+                  .Setup(HttpMethod.Put, "/offers/{offer_id}/archive.json")
+                  .WithAuth("BasicAuth")
+                  .Parameters(_parameters => _parameters
+                      .Template(_template => _template.Setup("offer_id", offerId))))
+              .ResponseHandler(_responseHandler => _responseHandler
+                  .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context))))
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
     }
 }

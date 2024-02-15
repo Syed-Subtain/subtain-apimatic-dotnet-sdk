@@ -13,8 +13,8 @@ OffersController offersController = client.OffersController;
 * [Create Offer](../../doc/controllers/offers.md#create-offer)
 * [List Offers](../../doc/controllers/offers.md#list-offers)
 * [Read Offers](../../doc/controllers/offers.md#read-offers)
-* [Archive Offer](../../doc/controllers/offers.md#archive-offer)
 * [Unarchive Offer](../../doc/controllers/offers.md#unarchive-offer)
+* [Archive Offer](../../doc/controllers/offers.md#archive-offer)
 
 
 # Create Offer
@@ -259,47 +259,6 @@ catch (ApiException e)
 | 401 | Unauthorized | `ApiException` |
 
 
-# Archive Offer
-
-Archive an existing offer. Please provide an `offer_id` in order to archive the correct item.
-
-```csharp
-ArchiveOfferAsync(
-    int offerId)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `offerId` | `int` | Template, Required | The Chargify id of the offer |
-
-## Response Type
-
-`Task`
-
-## Example Usage
-
-```csharp
-int offerId = 130;
-try
-{
-    await offersController.ArchiveOfferAsync(offerId);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 401 | Unauthorized | `ApiException` |
-
-
 # Unarchive Offer
 
 Unarchive a previously archived offer. Please provide an `offer_id` in order to un-archive the correct item.
@@ -326,6 +285,47 @@ int offerId = 130;
 try
 {
     await offersController.UnarchiveOfferAsync(offerId);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 401 | Unauthorized | `ApiException` |
+
+
+# Archive Offer
+
+Archive an existing offer. Please provide an `offer_id` in order to archive the correct item.
+
+```csharp
+ArchiveOfferAsync(
+    int offerId)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `offerId` | `int` | Template, Required | The Chargify id of the offer |
+
+## Response Type
+
+`Task`
+
+## Example Usage
+
+```csharp
+int offerId = 130;
+try
+{
+    await offersController.ArchiveOfferAsync(offerId);
 }
 catch (ApiException e)
 {

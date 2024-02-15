@@ -10,64 +10,10 @@ InsightsController insightsController = client.InsightsController;
 
 ## Methods
 
-* [Read Site Stats](../../doc/controllers/insights.md#read-site-stats)
 * [Read Mrr](../../doc/controllers/insights.md#read-mrr)
+* [Read Site Stats](../../doc/controllers/insights.md#read-site-stats)
 * [Read Mrr Movements](../../doc/controllers/insights.md#read-mrr-movements)
 * [List Mrr Per Subscription](../../doc/controllers/insights.md#list-mrr-per-subscription)
-
-
-# Read Site Stats
-
-The Stats API is a very basic view of some Site-level stats. This API call only answers with JSON responses. An XML version is not provided.
-
-## Stats Documentation
-
-There currently is not a complimentary matching set of documentation that compliments this endpoint. However, each Site's dashboard will reflect the summary of information provided in the Stats reposnse.
-
-```
-https://subdomain.chargify.com/dashboard
-```
-
-```csharp
-ReadSiteStatsAsync()
-```
-
-## Response Type
-
-[`Task<Models.SiteSummary>`](../../doc/models/site-summary.md)
-
-## Example Usage
-
-```csharp
-try
-{
-    SiteSummary result = await insightsController.ReadSiteStatsAsync();
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Example Response *(as JSON)*
-
-```json
-{
-  "seller_name": "Acme, Inc.",
-  "site_name": "Production",
-  "site_id": 12345,
-  "site_currency": "USD",
-  "stats": {
-    "total_subscriptions": 120,
-    "subscriptions_today": 4,
-    "total_revenue": "$45,978.81",
-    "revenue_today": "$1,405.12",
-    "revenue_this_month": "$10,000.00",
-    "revenue_this_year": "$27,935.24"
-  }
-}
-```
 
 
 # Read Mrr
@@ -128,6 +74,60 @@ catch (ApiException e)
 ```
 
 
+# Read Site Stats
+
+The Stats API is a very basic view of some Site-level stats. This API call only answers with JSON responses. An XML version is not provided.
+
+## Stats Documentation
+
+There currently is not a complimentary matching set of documentation that compliments this endpoint. However, each Site's dashboard will reflect the summary of information provided in the Stats reposnse.
+
+```
+https://subdomain.chargify.com/dashboard
+```
+
+```csharp
+ReadSiteStatsAsync()
+```
+
+## Response Type
+
+[`Task<Models.SiteSummary>`](../../doc/models/site-summary.md)
+
+## Example Usage
+
+```csharp
+try
+{
+    SiteSummary result = await insightsController.ReadSiteStatsAsync();
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Example Response *(as JSON)*
+
+```json
+{
+  "seller_name": "Acme, Inc.",
+  "site_name": "Production",
+  "site_id": 12345,
+  "site_currency": "USD",
+  "stats": {
+    "total_subscriptions": 120,
+    "subscriptions_today": 4,
+    "total_revenue": "$45,978.81",
+    "revenue_today": "$1,405.12",
+    "revenue_this_month": "$10,000.00",
+    "revenue_this_year": "$27,935.24"
+  }
+}
+```
+
+
 # Read Mrr Movements
 
 **This endpoint is deprecated.**
@@ -167,8 +167,8 @@ ReadMrrMovementsAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `subscriptionId` | `int?` | Query, Optional | optionally filter results by subscription |
-| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`.<br>**Default**: `1`<br>**Constraints**: `>= 1` |
-| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 10. The maximum allowed values is 50; any per_page value over 50 will be changed to 50.<br>Use in query `per_page=20`.<br>**Default**: `10`<br>**Constraints**: `<= 50` |
+| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`. |
+| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 10. The maximum allowed values is 50; any per_page value over 50 will be changed to 50.<br>Use in query `per_page=20`. |
 | `direction` | [`ReadMrrMovementsInputDirection`](../../doc/models/containers/read-mrr-movements-input-direction.md) | Query, Optional | This is a container for one-of cases. |
 
 ## Response Type
@@ -265,8 +265,8 @@ ListMrrPerSubscriptionAsync(
 |  --- | --- | --- | --- |
 | `filterSubscriptionIds` | `List<int>` | Query, Optional | Submit ids in order to limit results. Use in query: `filter[subscription_ids]=1,2,3`. |
 | `atTime` | `string` | Query, Optional | Submit a timestamp in ISO8601 format to request MRR for a historic time. Use in query: `at_time=2022-01-10T10:00:00-05:00`. |
-| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`.<br>**Default**: `1`<br>**Constraints**: `>= 1` |
-| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`.<br>**Default**: `20`<br>**Constraints**: `<= 200` |
+| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`. |
+| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`. |
 | `direction` | [`Direction?`](../../doc/models/direction.md) | Query, Optional | Controls the order in which results are returned. Records are ordered by subscription_id in ascending order by default. Use in query `direction=desc`. |
 
 ## Response Type

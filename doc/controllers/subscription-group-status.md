@@ -10,106 +10,10 @@ SubscriptionGroupStatusController subscriptionGroupStatusController = client.Sub
 
 ## Methods
 
-* [Cancel Subscriptions in Group](../../doc/controllers/subscription-group-status.md#cancel-subscriptions-in-group)
-* [Initiate Delayed Cancellation for Group](../../doc/controllers/subscription-group-status.md#initiate-delayed-cancellation-for-group)
 * [Stop Delayed Cancellation for Group](../../doc/controllers/subscription-group-status.md#stop-delayed-cancellation-for-group)
 * [Reactivate Subscription Group](../../doc/controllers/subscription-group-status.md#reactivate-subscription-group)
-
-
-# Cancel Subscriptions in Group
-
-This endpoint will immediately cancel all subscriptions within the specified group. The group is identified by it's `uid` passed in the URL. To successfully cancel the group, the primary subscription must be on automatic billing. The group members as well must be on automatic billing or they must be prepaid.
-
-In order to cancel a subscription group while also charging for any unbilled usage on metered or prepaid components, the `charge_unbilled_usage=true` parameter must be included in the request.
-
-```csharp
-CancelSubscriptionsInGroupAsync(
-    string uid,
-    Models.CancelGroupedSubscriptionsRequest body = null)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `uid` | `string` | Template, Required | The uid of the subscription group |
-| `body` | [`CancelGroupedSubscriptionsRequest`](../../doc/models/cancel-grouped-subscriptions-request.md) | Body, Optional | - |
-
-## Response Type
-
-`Task`
-
-## Example Usage
-
-```csharp
-string uid = "uid0";
-CancelGroupedSubscriptionsRequest body = new CancelGroupedSubscriptionsRequest
-{
-    ChargeUnbilledUsage = true,
-};
-
-try
-{
-    await subscriptionGroupStatusController.CancelSubscriptionsInGroupAsync(
-        uid,
-        body
-    );
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-
-
-# Initiate Delayed Cancellation for Group
-
-This endpoint will schedule all subscriptions within the specified group to be canceled at the end of their billing period. The group is identified by it's uid passed in the URL.
-
-All subscriptions in the group must be on automatic billing in order to successfully cancel them, and the group must not be in a "past_due" state.
-
-```csharp
-InitiateDelayedCancellationForGroupAsync(
-    string uid)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `uid` | `string` | Template, Required | The uid of the subscription group |
-
-## Response Type
-
-`Task`
-
-## Example Usage
-
-```csharp
-string uid = "uid0";
-try
-{
-    await subscriptionGroupStatusController.InitiateDelayedCancellationForGroupAsync(uid);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
+* [Initiate Delayed Cancellation for Group](../../doc/controllers/subscription-group-status.md#initiate-delayed-cancellation-for-group)
+* [Cancel Subscriptions in Group](../../doc/controllers/subscription-group-status.md#cancel-subscriptions-in-group)
 
 
 # Stop Delayed Cancellation for Group
@@ -231,6 +135,102 @@ catch (ApiException e)
   "next_assessment_at": "2020-06-18T12:00:00-04:00",
   "state": "active",
   "cancel_at_end_of_period": false
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
+
+
+# Initiate Delayed Cancellation for Group
+
+This endpoint will schedule all subscriptions within the specified group to be canceled at the end of their billing period. The group is identified by it's uid passed in the URL.
+
+All subscriptions in the group must be on automatic billing in order to successfully cancel them, and the group must not be in a "past_due" state.
+
+```csharp
+InitiateDelayedCancellationForGroupAsync(
+    string uid)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `uid` | `string` | Template, Required | The uid of the subscription group |
+
+## Response Type
+
+`Task`
+
+## Example Usage
+
+```csharp
+string uid = "uid0";
+try
+{
+    await subscriptionGroupStatusController.InitiateDelayedCancellationForGroupAsync(uid);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
+
+
+# Cancel Subscriptions in Group
+
+This endpoint will immediately cancel all subscriptions within the specified group. The group is identified by it's `uid` passed in the URL. To successfully cancel the group, the primary subscription must be on automatic billing. The group members as well must be on automatic billing or they must be prepaid.
+
+In order to cancel a subscription group while also charging for any unbilled usage on metered or prepaid components, the `charge_unbilled_usage=true` parameter must be included in the request.
+
+```csharp
+CancelSubscriptionsInGroupAsync(
+    string uid,
+    Models.CancelGroupedSubscriptionsRequest body = null)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `uid` | `string` | Template, Required | The uid of the subscription group |
+| `body` | [`CancelGroupedSubscriptionsRequest`](../../doc/models/cancel-grouped-subscriptions-request.md) | Body, Optional | - |
+
+## Response Type
+
+`Task`
+
+## Example Usage
+
+```csharp
+string uid = "uid0";
+CancelGroupedSubscriptionsRequest body = new CancelGroupedSubscriptionsRequest
+{
+    ChargeUnbilledUsage = true,
+};
+
+try
+{
+    await subscriptionGroupStatusController.CancelSubscriptionsInGroupAsync(
+        uid,
+        body
+    );
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
 }
 ```
 

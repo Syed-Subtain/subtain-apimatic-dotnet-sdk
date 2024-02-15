@@ -13,7 +13,6 @@ namespace AdvancedBilling.Standard.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Authentication;
     using AdvancedBilling.Standard.Exceptions;
     using AdvancedBilling.Standard.Http.Client;
     using AdvancedBilling.Standard.Utilities;
@@ -33,6 +32,58 @@ namespace AdvancedBilling.Standard.Controllers
         /// Initializes a new instance of the <see cref="WebhooksController"/> class.
         /// </summary>
         internal WebhooksController(GlobalConfiguration globalConfiguration) : base(globalConfiguration) { }
+
+        /// <summary>
+        /// Posting to the replay endpoint does not immediately resend the webhooks. They are added to a queue and will be sent as soon as possible, depending on available system resources.
+        /// You may submit an array of up to 1000 webhook IDs to replay in the request.
+        /// </summary>
+        /// <param name="body">Optional parameter: Example: .</param>
+        /// <returns>Returns the Models.ReplayWebhooksResponse response from the API call.</returns>
+        public Models.ReplayWebhooksResponse ReplayWebhooks(
+                Models.ReplayWebhooksRequest body = null)
+            => CoreHelper.RunTask(ReplayWebhooksAsync(body));
+
+        /// <summary>
+        /// Posting to the replay endpoint does not immediately resend the webhooks. They are added to a queue and will be sent as soon as possible, depending on available system resources.
+        /// You may submit an array of up to 1000 webhook IDs to replay in the request.
+        /// </summary>
+        /// <param name="body">Optional parameter: Example: .</param>
+        /// <param name="cancellationToken"> cancellationToken. </param>
+        /// <returns>Returns the Models.ReplayWebhooksResponse response from the API call.</returns>
+        public async Task<Models.ReplayWebhooksResponse> ReplayWebhooksAsync(
+                Models.ReplayWebhooksRequest body = null,
+                CancellationToken cancellationToken = default)
+            => await CreateApiCall<Models.ReplayWebhooksResponse>()
+              .RequestBuilder(_requestBuilder => _requestBuilder
+                  .Setup(HttpMethod.Post, "/webhooks/replay.json")
+                  .WithAuth("BasicAuth")
+                  .Parameters(_parameters => _parameters
+                      .Body(_bodyParameter => _bodyParameter.Setup(body))
+                      .Header(_header => _header.Setup("Content-Type", "application/json"))))
+              .ResponseHandler(_responseHandler => _responseHandler
+                  .NullOn404())
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+        /// <summary>
+        /// This method returns created endpoints for site.
+        /// </summary>
+        /// <returns>Returns the List of Models.Endpoint response from the API call.</returns>
+        public List<Models.Endpoint> ListEndpoints()
+            => CoreHelper.RunTask(ListEndpointsAsync());
+
+        /// <summary>
+        /// This method returns created endpoints for site.
+        /// </summary>
+        /// <param name="cancellationToken"> cancellationToken. </param>
+        /// <returns>Returns the List of Models.Endpoint response from the API call.</returns>
+        public async Task<List<Models.Endpoint>> ListEndpointsAsync(CancellationToken cancellationToken = default)
+            => await CreateApiCall<List<Models.Endpoint>>()
+              .RequestBuilder(_requestBuilder => _requestBuilder
+                  .Setup(HttpMethod.Get, "/endpoints.json")
+                  .WithAuth("BasicAuth"))
+              .ResponseHandler(_responseHandler => _responseHandler
+                  .NullOn404())
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// ## Webhooks Intro.
@@ -71,7 +122,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<List<Models.WebhookResponse>>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/webhooks.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Query(_query => _query.Setup("status", (input.Status.HasValue) ? ApiHelper.JsonSerialize(input.Status.Value).Trim('\"') : null))
                       .Query(_query => _query.Setup("since_date", input.SinceDate))
@@ -82,7 +133,7 @@ namespace AdvancedBilling.Standard.Controllers
                       .Query(_query => _query.Setup("subscription", input.Subscription))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This method allows you to enable webhooks via API for your site.
@@ -105,44 +156,13 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.EnableWebhooksResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Put, "/webhooks/settings.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Header(_header => _header.Setup("Content-Type", "application/json"))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
-              .ExecuteAsync(cancellationToken);
-
-        /// <summary>
-        /// Posting to the replay endpoint does not immediately resend the webhooks. They are added to a queue and will be sent as soon as possible, depending on available system resources.
-        /// You may submit an array of up to 1000 webhook IDs to replay in the request.
-        /// </summary>
-        /// <param name="body">Optional parameter: Example: .</param>
-        /// <returns>Returns the Models.ReplayWebhooksResponse response from the API call.</returns>
-        public Models.ReplayWebhooksResponse ReplayWebhooks(
-                Models.ReplayWebhooksRequest body = null)
-            => CoreHelper.RunTask(ReplayWebhooksAsync(body));
-
-        /// <summary>
-        /// Posting to the replay endpoint does not immediately resend the webhooks. They are added to a queue and will be sent as soon as possible, depending on available system resources.
-        /// You may submit an array of up to 1000 webhook IDs to replay in the request.
-        /// </summary>
-        /// <param name="body">Optional parameter: Example: .</param>
-        /// <param name="cancellationToken"> cancellationToken. </param>
-        /// <returns>Returns the Models.ReplayWebhooksResponse response from the API call.</returns>
-        public async Task<Models.ReplayWebhooksResponse> ReplayWebhooksAsync(
-                Models.ReplayWebhooksRequest body = null,
-                CancellationToken cancellationToken = default)
-            => await CreateApiCall<Models.ReplayWebhooksResponse>()
-              .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Post, "/webhooks/replay.json")
-                  .WithAuth("global")
-                  .Parameters(_parameters => _parameters
-                      .Body(_bodyParameter => _bodyParameter.Setup(body))
-                      .Header(_header => _header.Setup("Content-Type", "application/json"))))
-              .ResponseHandler(_responseHandler => _responseHandler
-                  .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// The Chargify API allows you to create an endpoint and assign a list of webhooks subscriptions (events) to it.
@@ -169,35 +189,14 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.EndpointResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Post, "/endpoints.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Header(_header => _header.Setup("Content-Type", "application/json"))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new ErrorListResponseException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
-
-        /// <summary>
-        /// This method returns created endpoints for site.
-        /// </summary>
-        /// <returns>Returns the List of Models.Endpoint response from the API call.</returns>
-        public List<Models.Endpoint> ListEndpoints()
-            => CoreHelper.RunTask(ListEndpointsAsync());
-
-        /// <summary>
-        /// This method returns created endpoints for site.
-        /// </summary>
-        /// <param name="cancellationToken"> cancellationToken. </param>
-        /// <returns>Returns the List of Models.Endpoint response from the API call.</returns>
-        public async Task<List<Models.Endpoint>> ListEndpointsAsync(CancellationToken cancellationToken = default)
-            => await CreateApiCall<List<Models.Endpoint>>()
-              .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Get, "/endpoints.json")
-                  .WithAuth("global"))
-              .ResponseHandler(_responseHandler => _responseHandler
-                  .NullOn404())
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// You can update an Endpoint via the API with a PUT request to the resource endpoint.
@@ -234,7 +233,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.EndpointResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Put, "/endpoints/{endpoint_id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Template(_template => _template.Setup("endpoint_id", endpointId))
@@ -242,6 +241,6 @@ namespace AdvancedBilling.Standard.Controllers
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new ErrorListResponseException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
     }
 }

@@ -10,28 +10,21 @@ SubscriptionNotesController subscriptionNotesController = client.SubscriptionNot
 
 ## Methods
 
-* [Create Subscription Note](../../doc/controllers/subscription-notes.md#create-subscription-note)
+* [Update Subscription Note](../../doc/controllers/subscription-notes.md#update-subscription-note)
 * [Delete Subscription Note](../../doc/controllers/subscription-notes.md#delete-subscription-note)
 * [List Subscription Notes](../../doc/controllers/subscription-notes.md#list-subscription-notes)
 * [Read Subscription Note](../../doc/controllers/subscription-notes.md#read-subscription-note)
-* [Update Subscription Note](../../doc/controllers/subscription-notes.md#update-subscription-note)
+* [Create Subscription Note](../../doc/controllers/subscription-notes.md#create-subscription-note)
 
 
-# Create Subscription Note
+# Update Subscription Note
 
-Use the following method to create a note for a subscription.
-
-## How to Use Subscription Notes
-
-Notes allow you to record information about a particular Subscription in a free text format.
-
-If you have structured data such as birth date, color, etc., consider using Metadata instead.
-
-Full documentation on how to use Notes in the Chargify UI can be located [here](https://maxio-chargify.zendesk.com/hc/en-us/articles/5404434903181-Subscription-Summary#notes).
+Use the following method to update a note for a Subscription.
 
 ```csharp
-CreateSubscriptionNoteAsync(
+UpdateSubscriptionNoteAsync(
     string subscriptionId,
+    string noteId,
     Models.UpdateSubscriptionNoteRequest body = null)
 ```
 
@@ -40,6 +33,7 @@ CreateSubscriptionNoteAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
+| `noteId` | `string` | Template, Required | The Chargify id of the note |
 | `body` | [`UpdateSubscriptionNoteRequest`](../../doc/models/update-subscription-note-request.md) | Body, Optional | Updatable fields for Subscription Note |
 
 ## Response Type
@@ -50,19 +44,21 @@ CreateSubscriptionNoteAsync(
 
 ```csharp
 string subscriptionId = "subscription_id0";
+string noteId = "note_id8";
 UpdateSubscriptionNoteRequest body = new UpdateSubscriptionNoteRequest
 {
     Note = new UpdateSubscriptionNote
     {
-        Body = "New test note.",
+        Body = "Modified test note.",
         Sticky = true,
     },
 };
 
 try
 {
-    SubscriptionNoteResponse result = await subscriptionNotesController.CreateSubscriptionNoteAsync(
+    SubscriptionNoteResponse result = await subscriptionNotesController.UpdateSubscriptionNoteAsync(
         subscriptionId,
+        noteId,
         body
     );
 }
@@ -129,8 +125,8 @@ ListSubscriptionNotesAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
-| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`.<br>**Default**: `1`<br>**Constraints**: `>= 1` |
-| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`.<br>**Default**: `20`<br>**Constraints**: `<= 200` |
+| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`. |
+| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`. |
 
 ## Response Type
 
@@ -241,14 +237,21 @@ catch (ApiException e)
 ```
 
 
-# Update Subscription Note
+# Create Subscription Note
 
-Use the following method to update a note for a Subscription.
+Use the following method to create a note for a subscription.
+
+## How to Use Subscription Notes
+
+Notes allow you to record information about a particular Subscription in a free text format.
+
+If you have structured data such as birth date, color, etc., consider using Metadata instead.
+
+Full documentation on how to use Notes in the Chargify UI can be located [here](https://maxio-chargify.zendesk.com/hc/en-us/articles/5404434903181-Subscription-Summary#notes).
 
 ```csharp
-UpdateSubscriptionNoteAsync(
+CreateSubscriptionNoteAsync(
     string subscriptionId,
-    string noteId,
     Models.UpdateSubscriptionNoteRequest body = null)
 ```
 
@@ -257,7 +260,6 @@ UpdateSubscriptionNoteAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
-| `noteId` | `string` | Template, Required | The Chargify id of the note |
 | `body` | [`UpdateSubscriptionNoteRequest`](../../doc/models/update-subscription-note-request.md) | Body, Optional | Updatable fields for Subscription Note |
 
 ## Response Type
@@ -268,21 +270,19 @@ UpdateSubscriptionNoteAsync(
 
 ```csharp
 string subscriptionId = "subscription_id0";
-string noteId = "note_id8";
 UpdateSubscriptionNoteRequest body = new UpdateSubscriptionNoteRequest
 {
     Note = new UpdateSubscriptionNote
     {
-        Body = "Modified test note.",
+        Body = "New test note.",
         Sticky = true,
     },
 };
 
 try
 {
-    SubscriptionNoteResponse result = await subscriptionNotesController.UpdateSubscriptionNoteAsync(
+    SubscriptionNoteResponse result = await subscriptionNotesController.CreateSubscriptionNoteAsync(
         subscriptionId,
-        noteId,
         body
     );
 }

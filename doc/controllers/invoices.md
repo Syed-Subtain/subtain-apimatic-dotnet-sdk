@@ -10,444 +10,23 @@ InvoicesController invoicesController = client.InvoicesController;
 
 ## Methods
 
-* [Refund Invoice](../../doc/controllers/invoices.md#refund-invoice)
-* [List Invoices](../../doc/controllers/invoices.md#list-invoices)
 * [Read Invoice](../../doc/controllers/invoices.md#read-invoice)
-* [List Invoice Events](../../doc/controllers/invoices.md#list-invoice-events)
-* [Record Payment for Invoice](../../doc/controllers/invoices.md#record-payment-for-invoice)
-* [Record External Payment for Invoices](../../doc/controllers/invoices.md#record-external-payment-for-invoices)
 * [List Credit Notes](../../doc/controllers/invoices.md#list-credit-notes)
 * [Read Credit Note](../../doc/controllers/invoices.md#read-credit-note)
 * [Record Payment for Subscription](../../doc/controllers/invoices.md#record-payment-for-subscription)
-* [Reopen Invoice](../../doc/controllers/invoices.md#reopen-invoice)
 * [Void Invoice](../../doc/controllers/invoices.md#void-invoice)
 * [List Invoice Segments](../../doc/controllers/invoices.md#list-invoice-segments)
+* [Refund Invoice](../../doc/controllers/invoices.md#refund-invoice)
+* [Record Payment for Invoice](../../doc/controllers/invoices.md#record-payment-for-invoice)
+* [Record External Payment for Invoices](../../doc/controllers/invoices.md#record-external-payment-for-invoices)
+* [Reopen Invoice](../../doc/controllers/invoices.md#reopen-invoice)
+* [List Invoices](../../doc/controllers/invoices.md#list-invoices)
+* [List Invoice Events](../../doc/controllers/invoices.md#list-invoice-events)
+* [Update Customer Information](../../doc/controllers/invoices.md#update-customer-information)
 * [Create Invoice](../../doc/controllers/invoices.md#create-invoice)
+* [Issue Invoice](../../doc/controllers/invoices.md#issue-invoice)
 * [Send Invoice](../../doc/controllers/invoices.md#send-invoice)
 * [Preview Customer Information Changes](../../doc/controllers/invoices.md#preview-customer-information-changes)
-* [Update Customer Information](../../doc/controllers/invoices.md#update-customer-information)
-* [Issue Invoice](../../doc/controllers/invoices.md#issue-invoice)
-
-
-# Refund Invoice
-
-Refund an invoice, segment, or consolidated invoice.
-
-## Partial Refund for Consolidated Invoice
-
-A refund less than the total of a consolidated invoice will be split across its segments.
-
-A $50.00 refund on a $100.00 consolidated invoice with one $60.00 and one $40.00 segment, the refunded amount will be applied as 50% of each ($30.00 and $20.00 respectively).
-
-```csharp
-RefundInvoiceAsync(
-    string uid,
-    Models.RefundInvoiceRequest body = null)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
-| `body` | [`RefundInvoiceRequest`](../../doc/models/refund-invoice-request.md) | Body, Optional | - |
-
-## Response Type
-
-[`Task<Models.Invoice>`](../../doc/models/invoice.md)
-
-## Example Usage
-
-```csharp
-string uid = "uid0";
-RefundInvoiceRequest body = new RefundInvoiceRequest
-{
-    Refund = RefundInvoiceRequestRefund.FromRefundInvoice(
-        new RefundInvoice
-        {
-            Amount = "100.00",
-            Memo = "Refund for Basic Plan renewal",
-            PaymentId = 12345,
-            External = false,
-            ApplyCredit = false,
-            VoidInvoice = true,
-        }
-    ),
-};
-
-try
-{
-    Invoice result = await invoicesController.RefundInvoiceAsync(
-        uid,
-        body
-    );
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-
-# List Invoices
-
-By default, invoices returned on the index will only include totals, not detailed breakdowns for `line_items`, `discounts`, `taxes`, `credits`, `payments`, `custom_fields`, or `refunds`. To include breakdowns, pass the specific field as a key in the query with a value set to `true`.
-
-```csharp
-ListInvoicesAsync(
-    Models.ListInvoicesInput input)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `startDate` | `string` | Query, Optional | The start date (format YYYY-MM-DD) with which to filter the date_field. Returns invoices with a timestamp at or after midnight (12:00:00 AM) in your site’s time zone on the date specified. |
-| `endDate` | `string` | Query, Optional | The end date (format YYYY-MM-DD) with which to filter the date_field. Returns invoices with a timestamp up to and including 11:59:59PM in your site’s time zone on the date specified. |
-| `status` | [`Status?`](../../doc/models/status.md) | Query, Optional | The current status of the invoice.  Allowed Values: draft, open, paid, pending, voided |
-| `subscriptionId` | `int?` | Query, Optional | The subscription's ID. |
-| `subscriptionGroupUid` | `string` | Query, Optional | The UID of the subscription group you want to fetch consolidated invoices for. This will return a paginated list of consolidated invoices for the specified group. |
-| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`.<br>**Default**: `1`<br>**Constraints**: `>= 1` |
-| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`.<br>**Default**: `20`<br>**Constraints**: `<= 200` |
-| `direction` | [`Direction?`](../../doc/models/direction.md) | Query, Optional | The sort direction of the returned invoices.<br>**Default**: `Direction.desc` |
-| `lineItems` | `bool?` | Query, Optional | Include line items data<br>**Default**: `false` |
-| `discounts` | `bool?` | Query, Optional | Include discounts data<br>**Default**: `false` |
-| `taxes` | `bool?` | Query, Optional | Include taxes data<br>**Default**: `false` |
-| `credits` | `bool?` | Query, Optional | Include credits data<br>**Default**: `false` |
-| `payments` | `bool?` | Query, Optional | Include payments data<br>**Default**: `false` |
-| `customFields` | `bool?` | Query, Optional | Include custom fields data<br>**Default**: `false` |
-| `refunds` | `bool?` | Query, Optional | Include refunds data<br>**Default**: `false` |
-| `dateField` | [`InvoiceDateField?`](../../doc/models/invoice-date-field.md) | Query, Optional | The type of filter you would like to apply to your search. Use in query `date_field=issue_date`.<br>**Default**: `InvoiceDateField.due_date` |
-| `startDatetime` | `string` | Query, Optional | The start date and time (format YYYY-MM-DD HH:MM:SS) with which to filter the date_field. Returns invoices with a timestamp at or after exact time provided in query. You can specify timezone in query - otherwise your site's time zone will be used. If provided, this parameter will be used instead of start_date. Allowed to be used only along with date_field set to created_at or updated_at. |
-| `endDatetime` | `string` | Query, Optional | The end date and time (format YYYY-MM-DD HH:MM:SS) with which to filter the date_field. Returns invoices with a timestamp at or before exact time provided in query. You can specify timezone in query - otherwise your site's time zone will be used. If provided, this parameter will be used instead of end_date. Allowed to be used only along with date_field set to created_at or updated_at. |
-| `customerIds` | `List<int>` | Query, Optional | Allows fetching invoices with matching customer id based on provided values. Use in query `customer_ids=1,2,3`. |
-| `number` | `List<string>` | Query, Optional | Allows fetching invoices with matching invoice number based on provided values. Use in query `number=1234,1235`. |
-| `productIds` | `List<int>` | Query, Optional | Allows fetching invoices with matching line items product ids based on provided values. Use in query `product_ids=23,34`. |
-| `sort` | [`InvoiceSortField?`](../../doc/models/invoice-sort-field.md) | Query, Optional | Allows specification of the order of the returned list. Use in query `sort=total_amount`.<br>**Default**: `InvoiceSortField.number` |
-
-## Response Type
-
-[`Task<Models.ListInvoicesResponse>`](../../doc/models/list-invoices-response.md)
-
-## Example Usage
-
-```csharp
-ListInvoicesInput listInvoicesInput = new ListInvoicesInput
-{
-    Page = 2,
-    PerPage = 50,
-    Direction = Direction.Desc,
-    LineItems = false,
-    Discounts = false,
-    Taxes = false,
-    Credits = false,
-    Payments = false,
-    CustomFields = false,
-    Refunds = false,
-    DateField = InvoiceDateField.IssueDate,
-    CustomerIds = new List<int>
-    {
-        1,
-        2,
-        3,
-    },
-    Number = new List<string>
-    {
-        "1234",
-        "1235",
-    },
-    ProductIds = new List<int>
-    {
-        23,
-        34,
-    },
-    Sort = InvoiceSortField.TotalAmount,
-};
-
-try
-{
-    ListInvoicesResponse result = await invoicesController.ListInvoicesAsync(listInvoicesInput);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Example Response *(as JSON)*
-
-```json
-{
-  "invoices": [
-    {
-      "uid": "inv_8htcd29wcq3q6",
-      "site_id": 51288,
-      "customer_id": 20153415,
-      "subscription_id": 23277588,
-      "number": "125",
-      "sequence_number": 125,
-      "issue_date": "2018-09-20",
-      "due_date": "2018-09-20",
-      "paid_date": "2018-09-20",
-      "status": "paid",
-      "collection_method": "automatic",
-      "payment_instructions": "Make checks payable to Acme, Inc.",
-      "currency": "USD",
-      "consolidation_level": "parent",
-      "parent_invoice_uid": null,
-      "parent_invoice_number": null,
-      "group_primary_subscription_id": 23277588,
-      "product_name": "Trial and setup fee",
-      "product_family_name": "Billing Plans",
-      "seller": {
-        "name": "General Goods",
-        "address": {
-          "street": "123 General Goods Way",
-          "line2": "Apt. 10",
-          "city": "Boston",
-          "state": "MA",
-          "zip": "02120",
-          "country": "US"
-        },
-        "phone": "555-555-1212"
-      },
-      "customer": {
-        "chargify_id": 20153415,
-        "first_name": "Meg",
-        "last_name": "Example",
-        "organization": "",
-        "email": "meg@example.com"
-      },
-      "memo": "Please pay within 15 days.",
-      "billing_address": {
-        "street": "123 I Love Cats Way",
-        "line2": "",
-        "city": "Boston",
-        "state": "MA",
-        "zip": "90210",
-        "country": "US"
-      },
-      "shipping_address": {
-        "street": "123 I Love Cats Way",
-        "line2": "",
-        "city": "Boston",
-        "state": "MA",
-        "zip": "90210",
-        "country": "US"
-      },
-      "subtotal_amount": "100.0",
-      "discount_amount": "0.0",
-      "tax_amount": "0.0",
-      "total_amount": "100.0",
-      "credit_amount": "0.0",
-      "paid_amount": "100.0",
-      "refund_amount": "0.0",
-      "due_amount": "0.0",
-      "public_url": "https://www.chargifypay.com/invoice/inv_8htcd29wcq3q6?token=n9fr5fxff5v74c7h9srg3cwd"
-    },
-    {
-      "uid": "inv_8hr3546xp4h8n",
-      "site_id": 51288,
-      "customer_id": 21687686,
-      "subscription_id": 22007644,
-      "number": "124",
-      "sequence_number": 124,
-      "issue_date": "2018-09-18",
-      "due_date": "2018-09-18",
-      "paid_date": null,
-      "status": "open",
-      "collection_method": "remittance",
-      "payment_instructions": "Make checks payable to Acme, Inc.",
-      "currency": "USD",
-      "consolidation_level": "none",
-      "parent_invoice_uid": null,
-      "parent_invoice_number": null,
-      "group_primary_subscription_id": null,
-      "product_name": "Trial and setup fee",
-      "product_family_name": "Billing Plans",
-      "seller": {
-        "name": "General Goods",
-        "address": {
-          "street": "123 General Goods Way",
-          "line2": "Apt. 10",
-          "city": "Boston",
-          "state": "MA",
-          "zip": "02120",
-          "country": "US"
-        },
-        "phone": "555-555-1212"
-      },
-      "customer": {
-        "chargify_id": 21687686,
-        "first_name": "Charlene",
-        "last_name": "Tester",
-        "organization": "",
-        "email": "food@example.com"
-      },
-      "memo": "Please pay within 15 days.",
-      "billing_address": {
-        "street": "",
-        "line2": "",
-        "city": "",
-        "state": "",
-        "zip": "",
-        "country": ""
-      },
-      "shipping_address": {
-        "street": "",
-        "line2": "",
-        "city": "",
-        "state": "",
-        "zip": "",
-        "country": ""
-      },
-      "subtotal_amount": "100.0",
-      "discount_amount": "0.0",
-      "tax_amount": "0.0",
-      "total_amount": "100.0",
-      "credit_amount": "0.0",
-      "paid_amount": "0.0",
-      "refund_amount": "0.0",
-      "due_amount": "100.0",
-      "public_url": "https://www.chargifypay.com/invoice/inv_8hr3546xp4h8n?token=n9fr5fxff5v74c7h9srg3cwd"
-    },
-    {
-      "uid": "inv_8hr3546wdwxkr",
-      "site_id": 51288,
-      "customer_id": 21687670,
-      "subscription_id": 22007627,
-      "number": "123",
-      "sequence_number": 123,
-      "issue_date": "2018-09-18",
-      "due_date": "2018-09-18",
-      "paid_date": "2018-09-18",
-      "status": "paid",
-      "collection_method": "automatic",
-      "payment_instructions": "Make checks payable to Acme, Inc.",
-      "currency": "USD",
-      "consolidation_level": "none",
-      "parent_invoice_uid": null,
-      "parent_invoice_number": null,
-      "group_primary_subscription_id": null,
-      "product_name": "Trial End - Free",
-      "product_family_name": "Billing Plans",
-      "seller": {
-        "name": "General Goods",
-        "address": {
-          "street": "123 General Goods Way",
-          "line2": "Apt. 10",
-          "city": "Boston",
-          "state": "MA",
-          "zip": "02120",
-          "country": "US"
-        },
-        "phone": "555-555-1212"
-      },
-      "customer": {
-        "chargify_id": 21687670,
-        "first_name": "Hello",
-        "last_name": "World",
-        "organization": "123",
-        "email": "example@example.com"
-      },
-      "memo": "Please pay within 15 days.",
-      "billing_address": {
-        "street": "123 Anywhere Street",
-        "line2": "",
-        "city": "Boston",
-        "state": "MA",
-        "zip": "02120",
-        "country": "US"
-      },
-      "shipping_address": {
-        "street": "",
-        "line2": "",
-        "city": "Boston",
-        "state": "AL",
-        "zip": "02120",
-        "country": "US"
-      },
-      "subtotal_amount": "0.0",
-      "discount_amount": "0.0",
-      "tax_amount": "0.0",
-      "total_amount": "0.0",
-      "credit_amount": "0.0",
-      "paid_amount": "0.0",
-      "refund_amount": "0.0",
-      "due_amount": "0.0",
-      "public_url": "https://www.chargifypay.com/invoice/inv_8hr3546wdwxkr?token=n9fr5fxff5v74c7h9srg3cwd"
-    },
-    {
-      "uid": "inv_8hjtk8bz56bbp",
-      "site_id": 51288,
-      "customer_id": 20137757,
-      "subscription_id": 20541100,
-      "number": "122",
-      "sequence_number": 122,
-      "issue_date": "2018-09-10",
-      "due_date": "2018-09-10",
-      "paid_date": "2018-09-10",
-      "status": "paid",
-      "collection_method": "automatic",
-      "payment_instructions": "Make checks payable to Acme, Inc.",
-      "currency": "USD",
-      "consolidation_level": "none",
-      "parent_invoice_uid": null,
-      "parent_invoice_number": null,
-      "group_primary_subscription_id": null,
-      "product_name": "$0 Product",
-      "product_family_name": "Billing Plans",
-      "seller": {
-        "name": "General Goods",
-        "address": {
-          "street": "123 General Goods Way",
-          "line2": "Apt. 10",
-          "city": "Boston",
-          "state": "MA",
-          "zip": "02120",
-          "country": "US"
-        },
-        "phone": "555-555-1212"
-      },
-      "customer": {
-        "chargify_id": 20137757,
-        "first_name": "Sasha",
-        "last_name": "Example",
-        "organization": "",
-        "email": "example@example.com"
-      },
-      "memo": "Please pay within 15 days.",
-      "billing_address": {
-        "street": "123 I Love Cats Way",
-        "line2": "",
-        "city": "Catville",
-        "state": "MA",
-        "zip": "90210",
-        "country": "US"
-      },
-      "shipping_address": {
-        "street": "123 I Love Cats Way",
-        "line2": "",
-        "city": "Catville",
-        "state": "AL",
-        "zip": "90210",
-        "country": "US"
-      },
-      "subtotal_amount": "0.0",
-      "discount_amount": "0.0",
-      "tax_amount": "0.0",
-      "total_amount": "0.0",
-      "credit_amount": "0.0",
-      "paid_amount": "0.0",
-      "refund_amount": "0.0",
-      "due_amount": "0.0",
-      "public_url": "https://www.chargifypay.com/invoice/inv_8hjtk8bz56bbp?token=fb6kpjz5rcr2vttyjs4rcv6y"
-    }
-  ]
-}
-```
 
 
 # Read Invoice
@@ -598,653 +177,6 @@ catch (ApiException e)
 ```
 
 
-# List Invoice Events
-
-This endpoint returns a list of invoice events. Each event contains event "data" (such as an applied payment) as well as a snapshot of the `invoice` at the time of event completion.
-
-Exposed event types are:
-
-+ issue_invoice
-+ apply_credit_note
-+ apply_payment
-+ refund_invoice
-+ void_invoice
-+ void_remainder
-+ backport_invoice
-+ change_invoice_status
-+ change_invoice_collection_method
-+ remove_payment
-
-Invoice events are returned in ascending order.
-
-If both a `since_date` and `since_id` are provided in request parameters, the `since_date` will be used.
-
-Note - invoice events that occurred prior to 09/05/2018 __will not__ contain an `invoice` snapshot.
-
-```csharp
-ListInvoiceEventsAsync(
-    Models.ListInvoiceEventsInput input)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `sinceDate` | `string` | Query, Optional | The timestamp in a format `YYYY-MM-DD T HH:MM:SS Z`, or `YYYY-MM-DD`(in this case, it returns data from the beginning of the day). of the event from which you want to start the search. All the events before the `since_date` timestamp are not returned in the response. |
-| `sinceId` | `int?` | Query, Optional | The ID of the event from which you want to start the search(ID is not included. e.g. if ID is set to 2, then all events with ID 3 and more will be shown) This parameter is not used if since_date is defined. |
-| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`.<br>**Default**: `1`<br>**Constraints**: `>= 1` |
-| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 100. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>**Default**: `100` |
-| `invoiceUid` | `string` | Query, Optional | Providing an invoice_uid allows for scoping of the invoice events to a single invoice or credit note. |
-| `withChangeInvoiceStatus` | `string` | Query, Optional | Use this parameter if you want to fetch also invoice events with change_invoice_status type. |
-| `eventTypes` | [`List<InvoiceEventType>`](../../doc/models/invoice-event-type.md) | Query, Optional | Filter results by event_type. Supply a comma separated list of event types (listed above). Use in query: `event_types=void_invoice,void_remainder`. |
-
-## Response Type
-
-[`Task<Models.ListInvoiceEventsResponse>`](../../doc/models/list-invoice-events-response.md)
-
-## Example Usage
-
-```csharp
-ListInvoiceEventsInput listInvoiceEventsInput = new ListInvoiceEventsInput
-{
-    Page = 2,
-    PerPage = 100,
-};
-
-try
-{
-    ListInvoiceEventsResponse result = await invoicesController.ListInvoiceEventsAsync(listInvoiceEventsInput);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Example Response *(as JSON)*
-
-```json
-{
-  "events": [
-    {
-      "id": 83,
-      "event_type": "apply_payment",
-      "event_data": {
-        "memo": "Non-Resumable Canceled On Purpose - Standard Plan: Renewal payment",
-        "original_amount": "168.61",
-        "applied_amount": "168.61",
-        "transaction_time": "2018-08-01T16:00:00Z",
-        "payment_method": {
-          "card_brand": "visa",
-          "card_expiration": "12/2022",
-          "last_four": null,
-          "masked_card_number": "XXXX-XXXX-XXXX-1111",
-          "type": "credit_card"
-        },
-        "consolidation_level": "none"
-      },
-      "timestamp": "2018-08-01T16:00:00Z",
-      "invoice": {
-        "id": 614942008934401500,
-        "uid": "inv_8gk5bwkct3gqt",
-        "site_id": 20,
-        "customer_id": 6,
-        "subscription_id": 10,
-        "number": "25",
-        "sequence_number": 25,
-        "transaction_time": "2018-08-01T16:00:00Z",
-        "created_at": "2018-08-01T16:00:00Z",
-        "updated_at": "2018-08-01T16:00:00Z",
-        "issue_date": "2018-08-01",
-        "due_date": "2018-08-01",
-        "paid_date": "2018-08-01",
-        "status": "paid",
-        "role": "renewal",
-        "collection_method": "automatic",
-        "payment_instructions": "Please make checks payable to \"Acme, Inc.\"",
-        "currency": "USD",
-        "consolidation_level": "none",
-        "parent_invoice_id": null,
-        "subscription_group_id": null,
-        "parent_invoice_number": null,
-        "product_name": "Standard Plan",
-        "product_family_name": "Cloud Compute Servers",
-        "seller": {
-          "name": "Acme, Inc.",
-          "address": {
-            "street": null,
-            "line2": null,
-            "city": null,
-            "state": null,
-            "zip": null,
-            "country": null
-          },
-          "phone": "555-555-1234 x137",
-          "logo_url": null
-        },
-        "customer": {
-          "chargify_id": 6,
-          "first_name": "Non-Resumable",
-          "last_name": "Canceled On Purpose",
-          "organization": null,
-          "email": "evan4@example.com"
-        },
-        "payer": {
-          "chargify_id": 6,
-          "first_name": "Non-Resumable",
-          "last_name": "Canceled On Purpose",
-          "organization": null,
-          "email": "evan4@example.com"
-        },
-        "recipient_emails": [],
-        "net_terms": 0,
-        "memo": "Thanks for your business! If you have any questions, please contact your account manager.",
-        "billing_address": {
-          "street": "200 Billing Rd.",
-          "line2": "Suite 100",
-          "city": "Needham",
-          "state": "MA",
-          "zip": "02494",
-          "country": "US"
-        },
-        "shipping_address": {
-          "street": "100 Shipping St.",
-          "line2": "Apt 200",
-          "city": "Pleasantville",
-          "state": "NC",
-          "zip": "12345",
-          "country": "US"
-        },
-        "line_items": [
-          {
-            "uid": "li_8gk5bwkct3gqk",
-            "title": "Standard Plan",
-            "description": "08/01/2018 - 09/01/2018",
-            "quantity": "1.0",
-            "unit_price": "99.0",
-            "subtotal_amount": "99.0",
-            "discount_amount": "9.9",
-            "tax_amount": "6.01425",
-            "total_amount": "95.11425",
-            "tiered_unit_price": false,
-            "period_range_start": "2018-08-01",
-            "period_range_end": "2018-09-01",
-            "transaction_id": 120,
-            "product_id": 84,
-            "product_version": 1,
-            "component_id": null,
-            "price_point_id": null,
-            "hide": false
-          },
-          {
-            "uid": "li_8gk5bwkct3gqm",
-            "title": "Small Instance (Hourly)",
-            "description": "07/22/2018 - 08/01/2018",
-            "quantity": "162.0",
-            "unit_price": "0.09567901",
-            "subtotal_amount": "15.5",
-            "discount_amount": "1.55",
-            "tax_amount": "0.941625",
-            "total_amount": "14.891625",
-            "tiered_unit_price": true,
-            "period_range_start": "2018-07-22",
-            "period_range_end": "2018-08-01",
-            "transaction_id": 121,
-            "product_id": 84,
-            "product_version": 1,
-            "component_id": 76,
-            "price_point_id": null,
-            "hide": false,
-            "component_cost_data": {
-              "rates": [
-                {
-                  "component_code_id": null,
-                  "price_point_id": 160,
-                  "product_id": 84,
-                  "quantity": "162.0",
-                  "amount": "15.5",
-                  "pricing_scheme": "tiered",
-                  "tiers": [
-                    {
-                      "starting_quantity": 1,
-                      "ending_quantity": 100,
-                      "quantity": "100.0",
-                      "unit_price": "0.0",
-                      "amount": "0.0"
-                    },
-                    {
-                      "starting_quantity": 101,
-                      "ending_quantity": null,
-                      "quantity": "62.0",
-                      "unit_price": "0.25",
-                      "amount": "15.5"
-                    }
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "uid": "li_8gk5bwkct3gqn",
-            "title": "Large Instance (Hourly)",
-            "description": "07/22/2018 - 08/01/2018",
-            "quantity": "194.0",
-            "unit_price": "0.24226804",
-            "subtotal_amount": "47.0",
-            "discount_amount": "4.7",
-            "tax_amount": "2.85525",
-            "total_amount": "45.15525",
-            "tiered_unit_price": true,
-            "period_range_start": "2018-07-22",
-            "period_range_end": "2018-08-01",
-            "transaction_id": 122,
-            "product_id": 84,
-            "product_version": 1,
-            "component_id": 77,
-            "price_point_id": null,
-            "hide": false,
-            "component_cost_data": {
-              "rates": [
-                {
-                  "component_code_id": null,
-                  "price_point_id": 161,
-                  "product_id": 84,
-                  "quantity": "194.0",
-                  "amount": "47.0",
-                  "pricing_scheme": "tiered",
-                  "tiers": [
-                    {
-                      "starting_quantity": 1,
-                      "ending_quantity": 100,
-                      "quantity": "100.0",
-                      "unit_price": "0.0",
-                      "amount": "0.0"
-                    },
-                    {
-                      "starting_quantity": 101,
-                      "ending_quantity": null,
-                      "quantity": "94.0",
-                      "unit_price": "0.5",
-                      "amount": "47.0"
-                    }
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "uid": "li_8gk5bwkct3gqp",
-            "title": "IP Addresses",
-            "description": "08/01/2018 - 09/01/2018",
-            "quantity": "7.0",
-            "unit_price": "2.0",
-            "subtotal_amount": "14.0",
-            "discount_amount": "1.4",
-            "tax_amount": "0.8505",
-            "total_amount": "13.4505",
-            "tiered_unit_price": false,
-            "period_range_start": "2018-08-01",
-            "period_range_end": "2018-09-01",
-            "transaction_id": 123,
-            "product_id": 84,
-            "product_version": 1,
-            "component_id": 79,
-            "price_point_id": 163,
-            "hide": false,
-            "component_cost_data": {
-              "rates": [
-                {
-                  "component_code_id": null,
-                  "price_point_id": 163,
-                  "product_id": 84,
-                  "quantity": "7.0",
-                  "amount": "14.0",
-                  "pricing_scheme": "per_unit",
-                  "tiers": [
-                    {
-                      "starting_quantity": 1,
-                      "ending_quantity": null,
-                      "quantity": "7.0",
-                      "unit_price": "2.0",
-                      "amount": "14.0"
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ],
-        "subtotal_amount": "175.5",
-        "discount_amount": "17.55",
-        "discounts": [
-          {
-            "uid": "dli_8gk5bwkct3gqq",
-            "title": "Multi-service discount (10%)",
-            "description": null,
-            "code": "MULTI3",
-            "source_type": "Coupon",
-            "source_id": 40,
-            "discount_type": "percentage",
-            "percentage": "10.0",
-            "eligible_amount": "175.5",
-            "discount_amount": "17.55",
-            "transaction_id": 124,
-            "line_item_breakouts": [
-              {
-                "uid": "li_8gk5bwkct3gqk",
-                "eligible_amount": "99.0",
-                "discount_amount": "9.9"
-              },
-              {
-                "uid": "li_8gk5bwkct3gqm",
-                "eligible_amount": "15.5",
-                "discount_amount": "1.55"
-              },
-              {
-                "uid": "li_8gk5bwkct3gqn",
-                "eligible_amount": "47.0",
-                "discount_amount": "4.7"
-              },
-              {
-                "uid": "li_8gk5bwkct3gqp",
-                "eligible_amount": "14.0",
-                "discount_amount": "1.4"
-              }
-            ]
-          }
-        ],
-        "tax_amount": "10.66",
-        "taxes": [
-          {
-            "uid": "tli_8gk5bwkct3gqr",
-            "title": "NC Sales Tax",
-            "description": null,
-            "source_type": "Tax",
-            "source_id": 1,
-            "percentage": "6.75",
-            "taxable_amount": "157.95",
-            "tax_amount": "10.66",
-            "transaction_id": 125,
-            "line_item_breakouts": [
-              {
-                "uid": "li_8gk5bwkct3gqk",
-                "taxable_amount": "89.1",
-                "tax_amount": "6.01425"
-              },
-              {
-                "uid": "li_8gk5bwkct3gqm",
-                "taxable_amount": "13.95",
-                "tax_amount": "0.941625"
-              },
-              {
-                "uid": "li_8gk5bwkct3gqn",
-                "taxable_amount": "42.3",
-                "tax_amount": "2.85525"
-              },
-              {
-                "uid": "li_8gk5bwkct3gqp",
-                "taxable_amount": "12.6",
-                "tax_amount": "0.8505"
-              }
-            ],
-            "tax_component_breakouts": [
-              {
-                "tax_rule_id": 1,
-                "percentage": "6.75",
-                "country_code": "US",
-                "subdivision_code": "NC"
-              }
-            ]
-          }
-        ],
-        "credit_amount": "0.0",
-        "refund_amount": "0.0",
-        "total_amount": "168.61",
-        "paid_amount": "168.61",
-        "due_amount": "0.0",
-        "credits": [],
-        "refunds": [],
-        "payments": [
-          {
-            "memo": "Non-Resumable Canceled On Purpose - Standard Plan: Renewal payment",
-            "original_amount": "168.61",
-            "applied_amount": "168.61",
-            "transaction_time": "2018-08-01T16:00:00Z",
-            "payment_method": {
-              "card_brand": "visa",
-              "card_expiration": "12/2022",
-              "last_four": null,
-              "masked_card_number": "XXXX-XXXX-XXXX-1111",
-              "type": "credit_card"
-            },
-            "transaction_id": 126,
-            "prepayment": false
-          }
-        ],
-        "custom_fields": [],
-        "display_settings": {
-          "hide_zero_subtotal_lines": false,
-          "include_discounts_on_lines": false
-        }
-      }
-    }
-  ],
-  "page": 48,
-  "per_page": 1,
-  "total_pages": 102
-}
-```
-
-
-# Record Payment for Invoice
-
-This API call should be used when you want to record a payment of a given type against a specific invoice. If you would like to apply a payment across multiple invoices, you can use the Bulk Payment endpoint.
-
-## Create a Payment from the existing payment profile
-
-In order to apply a payment to an invoice using an existing payment profile, specify `type` as `payment`, the amount less than the invoice total, and the customer's `payment_profile_id`. The ID of a payment profile might be retrieved via the Payment Profiles API endpoint.
-
-```
-{
-  "type": "payment",
-  "payment": {
-    "amount": 10.00,
-    "payment_profile_id": 123
-  }
-}
-```
-
-## Create a Payment from the Subscription's Prepayment Account
-
-In order apply a prepayment to an invoice, specify the `type` as `prepayment`, and also the `amount`.
-
-```
-{
-  "type": "prepayment",
-  "payment": {
-    "amount": 10.00
-  }
-}
-```
-
-Note that the `amount` must be less than or equal to the Subscription's Prepayment account balance.
-
-## Create a Payment from the Subscription's Service Credit Account
-
-In order to apply a service credit to an invoice, specify the `type` as `service_credit`, and also the `amount`:
-
-```
-{
-  "type": "service_credit",
-  "payment": {
-    "amount": 10.00
-  }
-}
-```
-
-Note that Chargify will attempt to fully pay the invoice's `due_amount` from the Subscription's Service Credit account. At this time, partial payments from a Service Credit Account are only allowed for consolidated invoices (subscription groups). Therefore, for normal invoices the Service Credit account balance must be greater than or equal to the invoice's `due_amount`.
-
-```csharp
-RecordPaymentForInvoiceAsync(
-    string uid,
-    Models.CreateInvoicePaymentRequest body = null)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
-| `body` | [`CreateInvoicePaymentRequest`](../../doc/models/create-invoice-payment-request.md) | Body, Optional | - |
-
-## Response Type
-
-[`Task<Models.Invoice>`](../../doc/models/invoice.md)
-
-## Example Usage
-
-```csharp
-string uid = "uid0";
-CreateInvoicePaymentRequest body = new CreateInvoicePaymentRequest
-{
-    Payment = new CreateInvoicePayment
-    {
-        Amount = CreateInvoicePaymentAmount.FromPrecision(124.33),
-        Memo = "for John Smith",
-        Method = InvoicePaymentMethodType.Check,
-        Details = "#0102",
-    },
-};
-
-try
-{
-    Invoice result = await invoicesController.RecordPaymentForInvoiceAsync(
-        uid,
-        body
-    );
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-
-# Record External Payment for Invoices
-
-This API call should be used when you want to record an external payment against multiple invoices.
-
-In order apply a payment to multiple invoices, at minimum, specify the `amount` and `applications` (i.e., `invoice_uid` and `amount`) details.
-
-```
-{
-  "payment": {
-    "memo": "to pay the bills",
-    "details": "check number 8675309",
-    "method": "check",
-    "amount": "250.00",
-    "applications": [
-      {
-        "invoice_uid": "inv_8gk5bwkct3gqt",
-        "amount": "100.00"
-      },
-      {
-        "invoice_uid": "inv_7bc6bwkct3lyt",
-        "amount": "150.00"
-      }
-    ]
-  }
-}
-```
-
-Note that the invoice payment amounts must be greater than 0. Total amount must be greater or equal to invoices payment amount sum.
-
-```csharp
-RecordExternalPaymentForInvoicesAsync(
-    Models.CreateMultiInvoicePaymentRequest body = null)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `body` | [`CreateMultiInvoicePaymentRequest`](../../doc/models/create-multi-invoice-payment-request.md) | Body, Optional | - |
-
-## Response Type
-
-[`Task<Models.MultiInvoicePaymentResponse>`](../../doc/models/multi-invoice-payment-response.md)
-
-## Example Usage
-
-```csharp
-CreateMultiInvoicePaymentRequest body = new CreateMultiInvoicePaymentRequest
-{
-    Payment = new CreateMultiInvoicePayment
-    {
-        Amount = CreateMultiInvoicePaymentAmount.FromString("100.00"),
-        Applications = new List<Models.CreateInvoicePaymentApplication>
-        {
-            new CreateInvoicePaymentApplication
-            {
-                InvoiceUid = "inv_8gk5bwkct3gqt",
-                Amount = "50.00",
-            },
-            new CreateInvoicePaymentApplication
-            {
-                InvoiceUid = "inv_7bc6bwkct3lyt",
-                Amount = "50.00",
-            },
-        },
-        Memo = "to pay the bills",
-        Details = "check number 8675309",
-        Method = InvoicePaymentMethodType.Check,
-    },
-};
-
-try
-{
-    MultiInvoicePaymentResponse result = await invoicesController.RecordExternalPaymentForInvoicesAsync(body);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Example Response *(as JSON)*
-
-```json
-{
-  "payment": {
-    "transaction_id": 1,
-    "total_amount": "100.00",
-    "currency_code": "USD",
-    "applications": [
-      {
-        "invoice_uid": "inv_8gk5bwkct3gqt",
-        "application_uid": "pmt_1tr0hgsct3ybx",
-        "applied_amount": "50.00"
-      },
-      {
-        "invoice_uid": "inv_7bc6bwkct3lyt",
-        "application_uid": "pmt_2",
-        "applied_amount": "50.00"
-      }
-    ]
-  }
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 422 | Unprocessable Entity | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-
-
 # List Credit Notes
 
 Credit Notes are like inverse invoices. They reduce the amount a customer owes.
@@ -1261,13 +193,13 @@ ListCreditNotesAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `subscriptionId` | `int?` | Query, Optional | The subscription's Chargify id |
-| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`.<br>**Default**: `1`<br>**Constraints**: `>= 1` |
-| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`.<br>**Default**: `20`<br>**Constraints**: `<= 200` |
-| `lineItems` | `bool?` | Query, Optional | Include line items data<br>**Default**: `false` |
-| `discounts` | `bool?` | Query, Optional | Include discounts data<br>**Default**: `false` |
-| `taxes` | `bool?` | Query, Optional | Include taxes data<br>**Default**: `false` |
-| `refunds` | `bool?` | Query, Optional | Include refunds data<br>**Default**: `false` |
-| `applications` | `bool?` | Query, Optional | Include applications data<br>**Default**: `false` |
+| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`. |
+| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`. |
+| `lineItems` | `bool?` | Query, Optional | Include line items data |
+| `discounts` | `bool?` | Query, Optional | Include discounts data |
+| `taxes` | `bool?` | Query, Optional | Include taxes data |
+| `refunds` | `bool?` | Query, Optional | Include refunds data |
+| `applications` | `bool?` | Query, Optional | Include applications data |
 
 ## Response Type
 
@@ -1979,59 +911,6 @@ catch (ApiException e)
 | 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
 
 
-# Reopen Invoice
-
-This endpoint allows you to reopen any invoice with the "canceled" status. Invoices enter "canceled" status if they were open at the time the subscription was canceled (whether through dunning or an intentional cancellation).
-
-Invoices with "canceled" status are no longer considered to be due. Once reopened, they are considered due for payment. Payment may then be captured in one of the following ways:
-
-- Reactivating the subscription, which will capture all open invoices (See note below about automatic reopening of invoices.)
-- Recording a payment directly against the invoice
-
-A note about reactivations: any canceled invoices from the most recent active period are automatically opened as a part of the reactivation process. Reactivating via this endpoint prior to reactivation is only necessary when you wish to capture older invoices from previous periods during the reactivation.
-
-### Reopening Consolidated Invoices
-
-When reopening a consolidated invoice, all of its canceled segments will also be reopened.
-
-```csharp
-ReopenInvoiceAsync(
-    string uid)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
-
-## Response Type
-
-[`Task<Models.Invoice>`](../../doc/models/invoice.md)
-
-## Example Usage
-
-```csharp
-string uid = "uid0";
-try
-{
-    Invoice result = await invoicesController.ReopenInvoiceAsync(uid);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 404 | Not Found | `ApiException` |
-| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-
-
 # Void Invoice
 
 This endpoint allows you to void any invoice with the "open" or "canceled" status.  It will also allow voiding of an invoice with the "pending" status if it is not a consolidated invoice.
@@ -2101,9 +980,9 @@ ListInvoiceSegmentsAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `invoiceUid` | `string` | Template, Required | The unique identifier of the consolidated invoice |
-| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`.<br>**Default**: `1`<br>**Constraints**: `>= 1` |
-| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`.<br>**Default**: `20`<br>**Constraints**: `<= 200` |
-| `direction` | [`Direction?`](../../doc/models/direction.md) | Query, Optional | Sort direction of the returned segments.<br>**Default**: `Direction.asc` |
+| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`. |
+| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`. |
+| `direction` | [`Direction?`](../../doc/models/direction.md) | Query, Optional | Sort direction of the returned segments. |
 
 ## Response Type
 
@@ -2403,6 +1282,1360 @@ catch (ApiException e)
   ]
 }
 ```
+
+
+# Refund Invoice
+
+Refund an invoice, segment, or consolidated invoice.
+
+## Partial Refund for Consolidated Invoice
+
+A refund less than the total of a consolidated invoice will be split across its segments.
+
+A $50.00 refund on a $100.00 consolidated invoice with one $60.00 and one $40.00 segment, the refunded amount will be applied as 50% of each ($30.00 and $20.00 respectively).
+
+```csharp
+RefundInvoiceAsync(
+    string uid,
+    Models.RefundInvoiceRequest body = null)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
+| `body` | [`RefundInvoiceRequest`](../../doc/models/refund-invoice-request.md) | Body, Optional | - |
+
+## Response Type
+
+[`Task<Models.Invoice>`](../../doc/models/invoice.md)
+
+## Example Usage
+
+```csharp
+string uid = "uid0";
+RefundInvoiceRequest body = new RefundInvoiceRequest
+{
+    Refund = RefundInvoiceRequestRefund.FromRefundInvoice(
+        new RefundInvoice
+        {
+            Amount = "100.00",
+            Memo = "Refund for Basic Plan renewal",
+            PaymentId = 12345,
+            External = false,
+            ApplyCredit = false,
+            VoidInvoice = true,
+        }
+    ),
+};
+
+try
+{
+    Invoice result = await invoicesController.RefundInvoiceAsync(
+        uid,
+        body
+    );
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+
+# Record Payment for Invoice
+
+This API call should be used when you want to record a payment of a given type against a specific invoice. If you would like to apply a payment across multiple invoices, you can use the Bulk Payment endpoint.
+
+## Create a Payment from the existing payment profile
+
+In order to apply a payment to an invoice using an existing payment profile, specify `type` as `payment`, the amount less than the invoice total, and the customer's `payment_profile_id`. The ID of a payment profile might be retrieved via the Payment Profiles API endpoint.
+
+```
+{
+  "type": "payment",
+  "payment": {
+    "amount": 10.00,
+    "payment_profile_id": 123
+  }
+}
+```
+
+## Create a Payment from the Subscription's Prepayment Account
+
+In order apply a prepayment to an invoice, specify the `type` as `prepayment`, and also the `amount`.
+
+```
+{
+  "type": "prepayment",
+  "payment": {
+    "amount": 10.00
+  }
+}
+```
+
+Note that the `amount` must be less than or equal to the Subscription's Prepayment account balance.
+
+## Create a Payment from the Subscription's Service Credit Account
+
+In order to apply a service credit to an invoice, specify the `type` as `service_credit`, and also the `amount`:
+
+```
+{
+  "type": "service_credit",
+  "payment": {
+    "amount": 10.00
+  }
+}
+```
+
+Note that Chargify will attempt to fully pay the invoice's `due_amount` from the Subscription's Service Credit account. At this time, partial payments from a Service Credit Account are only allowed for consolidated invoices (subscription groups). Therefore, for normal invoices the Service Credit account balance must be greater than or equal to the invoice's `due_amount`.
+
+```csharp
+RecordPaymentForInvoiceAsync(
+    string uid,
+    Models.CreateInvoicePaymentRequest body = null)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
+| `body` | [`CreateInvoicePaymentRequest`](../../doc/models/create-invoice-payment-request.md) | Body, Optional | - |
+
+## Response Type
+
+[`Task<Models.Invoice>`](../../doc/models/invoice.md)
+
+## Example Usage
+
+```csharp
+string uid = "uid0";
+CreateInvoicePaymentRequest body = new CreateInvoicePaymentRequest
+{
+    Payment = new CreateInvoicePayment
+    {
+        Amount = CreateInvoicePaymentAmount.FromPrecision(124.33),
+        Memo = "for John Smith",
+        Method = InvoicePaymentMethodType.Check,
+        Details = "#0102",
+    },
+};
+
+try
+{
+    Invoice result = await invoicesController.RecordPaymentForInvoiceAsync(
+        uid,
+        body
+    );
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+
+# Record External Payment for Invoices
+
+This API call should be used when you want to record an external payment against multiple invoices.
+
+In order apply a payment to multiple invoices, at minimum, specify the `amount` and `applications` (i.e., `invoice_uid` and `amount`) details.
+
+```
+{
+  "payment": {
+    "memo": "to pay the bills",
+    "details": "check number 8675309",
+    "method": "check",
+    "amount": "250.00",
+    "applications": [
+      {
+        "invoice_uid": "inv_8gk5bwkct3gqt",
+        "amount": "100.00"
+      },
+      {
+        "invoice_uid": "inv_7bc6bwkct3lyt",
+        "amount": "150.00"
+      }
+    ]
+  }
+}
+```
+
+Note that the invoice payment amounts must be greater than 0. Total amount must be greater or equal to invoices payment amount sum.
+
+```csharp
+RecordExternalPaymentForInvoicesAsync(
+    Models.CreateMultiInvoicePaymentRequest body = null)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `body` | [`CreateMultiInvoicePaymentRequest`](../../doc/models/create-multi-invoice-payment-request.md) | Body, Optional | - |
+
+## Response Type
+
+[`Task<Models.MultiInvoicePaymentResponse>`](../../doc/models/multi-invoice-payment-response.md)
+
+## Example Usage
+
+```csharp
+CreateMultiInvoicePaymentRequest body = new CreateMultiInvoicePaymentRequest
+{
+    Payment = new CreateMultiInvoicePayment
+    {
+        Amount = CreateMultiInvoicePaymentAmount.FromString("100.00"),
+        Applications = new List<Models.CreateInvoicePaymentApplication>
+        {
+            new CreateInvoicePaymentApplication
+            {
+                InvoiceUid = "inv_8gk5bwkct3gqt",
+                Amount = "50.00",
+            },
+            new CreateInvoicePaymentApplication
+            {
+                InvoiceUid = "inv_7bc6bwkct3lyt",
+                Amount = "50.00",
+            },
+        },
+        Memo = "to pay the bills",
+        Details = "check number 8675309",
+        Method = InvoicePaymentMethodType.Check,
+    },
+};
+
+try
+{
+    MultiInvoicePaymentResponse result = await invoicesController.RecordExternalPaymentForInvoicesAsync(body);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Example Response *(as JSON)*
+
+```json
+{
+  "payment": {
+    "transaction_id": 1,
+    "total_amount": "100.00",
+    "currency_code": "USD",
+    "applications": [
+      {
+        "invoice_uid": "inv_8gk5bwkct3gqt",
+        "application_uid": "pmt_1tr0hgsct3ybx",
+        "applied_amount": "50.00"
+      },
+      {
+        "invoice_uid": "inv_7bc6bwkct3lyt",
+        "application_uid": "pmt_2",
+        "applied_amount": "50.00"
+      }
+    ]
+  }
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 422 | Unprocessable Entity | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
+
+
+# Reopen Invoice
+
+This endpoint allows you to reopen any invoice with the "canceled" status. Invoices enter "canceled" status if they were open at the time the subscription was canceled (whether through dunning or an intentional cancellation).
+
+Invoices with "canceled" status are no longer considered to be due. Once reopened, they are considered due for payment. Payment may then be captured in one of the following ways:
+
+- Reactivating the subscription, which will capture all open invoices (See note below about automatic reopening of invoices.)
+- Recording a payment directly against the invoice
+
+A note about reactivations: any canceled invoices from the most recent active period are automatically opened as a part of the reactivation process. Reactivating via this endpoint prior to reactivation is only necessary when you wish to capture older invoices from previous periods during the reactivation.
+
+### Reopening Consolidated Invoices
+
+When reopening a consolidated invoice, all of its canceled segments will also be reopened.
+
+```csharp
+ReopenInvoiceAsync(
+    string uid)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
+
+## Response Type
+
+[`Task<Models.Invoice>`](../../doc/models/invoice.md)
+
+## Example Usage
+
+```csharp
+string uid = "uid0";
+try
+{
+    Invoice result = await invoicesController.ReopenInvoiceAsync(uid);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 404 | Not Found | `ApiException` |
+| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
+
+
+# List Invoices
+
+By default, invoices returned on the index will only include totals, not detailed breakdowns for `line_items`, `discounts`, `taxes`, `credits`, `payments`, `custom_fields`, or `refunds`. To include breakdowns, pass the specific field as a key in the query with a value set to `true`.
+
+```csharp
+ListInvoicesAsync(
+    Models.ListInvoicesInput input)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `startDate` | `string` | Query, Optional | The start date (format YYYY-MM-DD) with which to filter the date_field. Returns invoices with a timestamp at or after midnight (12:00:00 AM) in your site’s time zone on the date specified. |
+| `endDate` | `string` | Query, Optional | The end date (format YYYY-MM-DD) with which to filter the date_field. Returns invoices with a timestamp up to and including 11:59:59PM in your site’s time zone on the date specified. |
+| `status` | [`Status?`](../../doc/models/status.md) | Query, Optional | The current status of the invoice.  Allowed Values: draft, open, paid, pending, voided |
+| `subscriptionId` | `int?` | Query, Optional | The subscription's ID. |
+| `subscriptionGroupUid` | `string` | Query, Optional | The UID of the subscription group you want to fetch consolidated invoices for. This will return a paginated list of consolidated invoices for the specified group. |
+| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`. |
+| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 20. The maximum allowed values is 200; any per_page value over 200 will be changed to 200.<br>Use in query `per_page=200`. |
+| `direction` | [`Direction?`](../../doc/models/direction.md) | Query, Optional | The sort direction of the returned invoices. |
+| `lineItems` | `bool?` | Query, Optional | Include line items data |
+| `discounts` | `bool?` | Query, Optional | Include discounts data |
+| `taxes` | `bool?` | Query, Optional | Include taxes data |
+| `credits` | `bool?` | Query, Optional | Include credits data |
+| `payments` | `bool?` | Query, Optional | Include payments data |
+| `customFields` | `bool?` | Query, Optional | Include custom fields data |
+| `refunds` | `bool?` | Query, Optional | Include refunds data |
+| `dateField` | [`InvoiceDateField?`](../../doc/models/invoice-date-field.md) | Query, Optional | The type of filter you would like to apply to your search. Use in query `date_field=issue_date`. |
+| `startDatetime` | `string` | Query, Optional | The start date and time (format YYYY-MM-DD HH:MM:SS) with which to filter the date_field. Returns invoices with a timestamp at or after exact time provided in query. You can specify timezone in query - otherwise your site's time zone will be used. If provided, this parameter will be used instead of start_date. Allowed to be used only along with date_field set to created_at or updated_at. |
+| `endDatetime` | `string` | Query, Optional | The end date and time (format YYYY-MM-DD HH:MM:SS) with which to filter the date_field. Returns invoices with a timestamp at or before exact time provided in query. You can specify timezone in query - otherwise your site's time zone will be used. If provided, this parameter will be used instead of end_date. Allowed to be used only along with date_field set to created_at or updated_at. |
+| `customerIds` | `List<int>` | Query, Optional | Allows fetching invoices with matching customer id based on provided values. Use in query `customer_ids=1,2,3`. |
+| `number` | `List<string>` | Query, Optional | Allows fetching invoices with matching invoice number based on provided values. Use in query `number=1234,1235`. |
+| `productIds` | `List<int>` | Query, Optional | Allows fetching invoices with matching line items product ids based on provided values. Use in query `product_ids=23,34`. |
+| `sort` | [`InvoiceSortField?`](../../doc/models/invoice-sort-field.md) | Query, Optional | Allows specification of the order of the returned list. Use in query `sort=total_amount`. |
+
+## Response Type
+
+[`Task<Models.ListInvoicesResponse>`](../../doc/models/list-invoices-response.md)
+
+## Example Usage
+
+```csharp
+ListInvoicesInput listInvoicesInput = new ListInvoicesInput
+{
+    Page = 2,
+    PerPage = 50,
+    Direction = Direction.Desc,
+    LineItems = false,
+    Discounts = false,
+    Taxes = false,
+    Credits = false,
+    Payments = false,
+    CustomFields = false,
+    Refunds = false,
+    DateField = InvoiceDateField.IssueDate,
+    CustomerIds = new List<int>
+    {
+        1,
+        2,
+        3,
+    },
+    Number = new List<string>
+    {
+        "1234",
+        "1235",
+    },
+    ProductIds = new List<int>
+    {
+        23,
+        34,
+    },
+    Sort = InvoiceSortField.TotalAmount,
+};
+
+try
+{
+    ListInvoicesResponse result = await invoicesController.ListInvoicesAsync(listInvoicesInput);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Example Response *(as JSON)*
+
+```json
+{
+  "invoices": [
+    {
+      "uid": "inv_8htcd29wcq3q6",
+      "site_id": 51288,
+      "customer_id": 20153415,
+      "subscription_id": 23277588,
+      "number": "125",
+      "sequence_number": 125,
+      "issue_date": "2018-09-20",
+      "due_date": "2018-09-20",
+      "paid_date": "2018-09-20",
+      "status": "paid",
+      "collection_method": "automatic",
+      "payment_instructions": "Make checks payable to Acme, Inc.",
+      "currency": "USD",
+      "consolidation_level": "parent",
+      "parent_invoice_uid": null,
+      "parent_invoice_number": null,
+      "group_primary_subscription_id": 23277588,
+      "product_name": "Trial and setup fee",
+      "product_family_name": "Billing Plans",
+      "seller": {
+        "name": "General Goods",
+        "address": {
+          "street": "123 General Goods Way",
+          "line2": "Apt. 10",
+          "city": "Boston",
+          "state": "MA",
+          "zip": "02120",
+          "country": "US"
+        },
+        "phone": "555-555-1212"
+      },
+      "customer": {
+        "chargify_id": 20153415,
+        "first_name": "Meg",
+        "last_name": "Example",
+        "organization": "",
+        "email": "meg@example.com"
+      },
+      "memo": "Please pay within 15 days.",
+      "billing_address": {
+        "street": "123 I Love Cats Way",
+        "line2": "",
+        "city": "Boston",
+        "state": "MA",
+        "zip": "90210",
+        "country": "US"
+      },
+      "shipping_address": {
+        "street": "123 I Love Cats Way",
+        "line2": "",
+        "city": "Boston",
+        "state": "MA",
+        "zip": "90210",
+        "country": "US"
+      },
+      "subtotal_amount": "100.0",
+      "discount_amount": "0.0",
+      "tax_amount": "0.0",
+      "total_amount": "100.0",
+      "credit_amount": "0.0",
+      "paid_amount": "100.0",
+      "refund_amount": "0.0",
+      "due_amount": "0.0",
+      "public_url": "https://www.chargifypay.com/invoice/inv_8htcd29wcq3q6?token=n9fr5fxff5v74c7h9srg3cwd"
+    },
+    {
+      "uid": "inv_8hr3546xp4h8n",
+      "site_id": 51288,
+      "customer_id": 21687686,
+      "subscription_id": 22007644,
+      "number": "124",
+      "sequence_number": 124,
+      "issue_date": "2018-09-18",
+      "due_date": "2018-09-18",
+      "paid_date": null,
+      "status": "open",
+      "collection_method": "remittance",
+      "payment_instructions": "Make checks payable to Acme, Inc.",
+      "currency": "USD",
+      "consolidation_level": "none",
+      "parent_invoice_uid": null,
+      "parent_invoice_number": null,
+      "group_primary_subscription_id": null,
+      "product_name": "Trial and setup fee",
+      "product_family_name": "Billing Plans",
+      "seller": {
+        "name": "General Goods",
+        "address": {
+          "street": "123 General Goods Way",
+          "line2": "Apt. 10",
+          "city": "Boston",
+          "state": "MA",
+          "zip": "02120",
+          "country": "US"
+        },
+        "phone": "555-555-1212"
+      },
+      "customer": {
+        "chargify_id": 21687686,
+        "first_name": "Charlene",
+        "last_name": "Tester",
+        "organization": "",
+        "email": "food@example.com"
+      },
+      "memo": "Please pay within 15 days.",
+      "billing_address": {
+        "street": "",
+        "line2": "",
+        "city": "",
+        "state": "",
+        "zip": "",
+        "country": ""
+      },
+      "shipping_address": {
+        "street": "",
+        "line2": "",
+        "city": "",
+        "state": "",
+        "zip": "",
+        "country": ""
+      },
+      "subtotal_amount": "100.0",
+      "discount_amount": "0.0",
+      "tax_amount": "0.0",
+      "total_amount": "100.0",
+      "credit_amount": "0.0",
+      "paid_amount": "0.0",
+      "refund_amount": "0.0",
+      "due_amount": "100.0",
+      "public_url": "https://www.chargifypay.com/invoice/inv_8hr3546xp4h8n?token=n9fr5fxff5v74c7h9srg3cwd"
+    },
+    {
+      "uid": "inv_8hr3546wdwxkr",
+      "site_id": 51288,
+      "customer_id": 21687670,
+      "subscription_id": 22007627,
+      "number": "123",
+      "sequence_number": 123,
+      "issue_date": "2018-09-18",
+      "due_date": "2018-09-18",
+      "paid_date": "2018-09-18",
+      "status": "paid",
+      "collection_method": "automatic",
+      "payment_instructions": "Make checks payable to Acme, Inc.",
+      "currency": "USD",
+      "consolidation_level": "none",
+      "parent_invoice_uid": null,
+      "parent_invoice_number": null,
+      "group_primary_subscription_id": null,
+      "product_name": "Trial End - Free",
+      "product_family_name": "Billing Plans",
+      "seller": {
+        "name": "General Goods",
+        "address": {
+          "street": "123 General Goods Way",
+          "line2": "Apt. 10",
+          "city": "Boston",
+          "state": "MA",
+          "zip": "02120",
+          "country": "US"
+        },
+        "phone": "555-555-1212"
+      },
+      "customer": {
+        "chargify_id": 21687670,
+        "first_name": "Hello",
+        "last_name": "World",
+        "organization": "123",
+        "email": "example@example.com"
+      },
+      "memo": "Please pay within 15 days.",
+      "billing_address": {
+        "street": "123 Anywhere Street",
+        "line2": "",
+        "city": "Boston",
+        "state": "MA",
+        "zip": "02120",
+        "country": "US"
+      },
+      "shipping_address": {
+        "street": "",
+        "line2": "",
+        "city": "Boston",
+        "state": "AL",
+        "zip": "02120",
+        "country": "US"
+      },
+      "subtotal_amount": "0.0",
+      "discount_amount": "0.0",
+      "tax_amount": "0.0",
+      "total_amount": "0.0",
+      "credit_amount": "0.0",
+      "paid_amount": "0.0",
+      "refund_amount": "0.0",
+      "due_amount": "0.0",
+      "public_url": "https://www.chargifypay.com/invoice/inv_8hr3546wdwxkr?token=n9fr5fxff5v74c7h9srg3cwd"
+    },
+    {
+      "uid": "inv_8hjtk8bz56bbp",
+      "site_id": 51288,
+      "customer_id": 20137757,
+      "subscription_id": 20541100,
+      "number": "122",
+      "sequence_number": 122,
+      "issue_date": "2018-09-10",
+      "due_date": "2018-09-10",
+      "paid_date": "2018-09-10",
+      "status": "paid",
+      "collection_method": "automatic",
+      "payment_instructions": "Make checks payable to Acme, Inc.",
+      "currency": "USD",
+      "consolidation_level": "none",
+      "parent_invoice_uid": null,
+      "parent_invoice_number": null,
+      "group_primary_subscription_id": null,
+      "product_name": "$0 Product",
+      "product_family_name": "Billing Plans",
+      "seller": {
+        "name": "General Goods",
+        "address": {
+          "street": "123 General Goods Way",
+          "line2": "Apt. 10",
+          "city": "Boston",
+          "state": "MA",
+          "zip": "02120",
+          "country": "US"
+        },
+        "phone": "555-555-1212"
+      },
+      "customer": {
+        "chargify_id": 20137757,
+        "first_name": "Sasha",
+        "last_name": "Example",
+        "organization": "",
+        "email": "example@example.com"
+      },
+      "memo": "Please pay within 15 days.",
+      "billing_address": {
+        "street": "123 I Love Cats Way",
+        "line2": "",
+        "city": "Catville",
+        "state": "MA",
+        "zip": "90210",
+        "country": "US"
+      },
+      "shipping_address": {
+        "street": "123 I Love Cats Way",
+        "line2": "",
+        "city": "Catville",
+        "state": "AL",
+        "zip": "90210",
+        "country": "US"
+      },
+      "subtotal_amount": "0.0",
+      "discount_amount": "0.0",
+      "tax_amount": "0.0",
+      "total_amount": "0.0",
+      "credit_amount": "0.0",
+      "paid_amount": "0.0",
+      "refund_amount": "0.0",
+      "due_amount": "0.0",
+      "public_url": "https://www.chargifypay.com/invoice/inv_8hjtk8bz56bbp?token=fb6kpjz5rcr2vttyjs4rcv6y"
+    }
+  ]
+}
+```
+
+
+# List Invoice Events
+
+This endpoint returns a list of invoice events. Each event contains event "data" (such as an applied payment) as well as a snapshot of the `invoice` at the time of event completion.
+
+Exposed event types are:
+
++ issue_invoice
++ apply_credit_note
++ apply_payment
++ refund_invoice
++ void_invoice
++ void_remainder
++ backport_invoice
++ change_invoice_status
++ change_invoice_collection_method
++ remove_payment
+
+Invoice events are returned in ascending order.
+
+If both a `since_date` and `since_id` are provided in request parameters, the `since_date` will be used.
+
+Note - invoice events that occurred prior to 09/05/2018 __will not__ contain an `invoice` snapshot.
+
+```csharp
+ListInvoiceEventsAsync(
+    Models.ListInvoiceEventsInput input)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `sinceDate` | `string` | Query, Optional | The timestamp in a format `YYYY-MM-DD T HH:MM:SS Z`, or `YYYY-MM-DD`(in this case, it returns data from the beginning of the day). of the event from which you want to start the search. All the events before the `since_date` timestamp are not returned in the response. |
+| `sinceId` | `int?` | Query, Optional | The ID of the event from which you want to start the search(ID is not included. e.g. if ID is set to 2, then all events with ID 3 and more will be shown) This parameter is not used if since_date is defined. |
+| `page` | `int?` | Query, Optional | Result records are organized in pages. By default, the first page of results is displayed. The page parameter specifies a page number of results to fetch. You can start navigating through the pages to consume the results. You do this by passing in a page parameter. Retrieve the next page by adding ?page=2 to the query string. If there are no results to return, then an empty result set will be returned.<br>Use in query `page=1`. |
+| `perPage` | `int?` | Query, Optional | This parameter indicates how many records to fetch in each request. Default value is 100. The maximum allowed values is 200; any per_page value over 200 will be changed to 200. |
+| `invoiceUid` | `string` | Query, Optional | Providing an invoice_uid allows for scoping of the invoice events to a single invoice or credit note. |
+| `withChangeInvoiceStatus` | `string` | Query, Optional | Use this parameter if you want to fetch also invoice events with change_invoice_status type. |
+| `eventTypes` | [`List<InvoiceEventType>`](../../doc/models/invoice-event-type.md) | Query, Optional | Filter results by event_type. Supply a comma separated list of event types (listed above). Use in query: `event_types=void_invoice,void_remainder`. |
+
+## Response Type
+
+[`Task<Models.ListInvoiceEventsResponse>`](../../doc/models/list-invoice-events-response.md)
+
+## Example Usage
+
+```csharp
+ListInvoiceEventsInput listInvoiceEventsInput = new ListInvoiceEventsInput
+{
+    Page = 2,
+    PerPage = 100,
+};
+
+try
+{
+    ListInvoiceEventsResponse result = await invoicesController.ListInvoiceEventsAsync(listInvoiceEventsInput);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Example Response *(as JSON)*
+
+```json
+{
+  "events": [
+    {
+      "id": 83,
+      "event_type": "apply_payment",
+      "event_data": {
+        "memo": "Non-Resumable Canceled On Purpose - Standard Plan: Renewal payment",
+        "original_amount": "168.61",
+        "applied_amount": "168.61",
+        "transaction_time": "2018-08-01T16:00:00Z",
+        "payment_method": {
+          "card_brand": "visa",
+          "card_expiration": "12/2022",
+          "last_four": null,
+          "masked_card_number": "XXXX-XXXX-XXXX-1111",
+          "type": "credit_card"
+        },
+        "consolidation_level": "none"
+      },
+      "timestamp": "2018-08-01T16:00:00Z",
+      "invoice": {
+        "id": 614942008934401500,
+        "uid": "inv_8gk5bwkct3gqt",
+        "site_id": 20,
+        "customer_id": 6,
+        "subscription_id": 10,
+        "number": "25",
+        "sequence_number": 25,
+        "transaction_time": "2018-08-01T16:00:00Z",
+        "created_at": "2018-08-01T16:00:00Z",
+        "updated_at": "2018-08-01T16:00:00Z",
+        "issue_date": "2018-08-01",
+        "due_date": "2018-08-01",
+        "paid_date": "2018-08-01",
+        "status": "paid",
+        "role": "renewal",
+        "collection_method": "automatic",
+        "payment_instructions": "Please make checks payable to \"Acme, Inc.\"",
+        "currency": "USD",
+        "consolidation_level": "none",
+        "parent_invoice_id": null,
+        "subscription_group_id": null,
+        "parent_invoice_number": null,
+        "product_name": "Standard Plan",
+        "product_family_name": "Cloud Compute Servers",
+        "seller": {
+          "name": "Acme, Inc.",
+          "address": {
+            "street": null,
+            "line2": null,
+            "city": null,
+            "state": null,
+            "zip": null,
+            "country": null
+          },
+          "phone": "555-555-1234 x137",
+          "logo_url": null
+        },
+        "customer": {
+          "chargify_id": 6,
+          "first_name": "Non-Resumable",
+          "last_name": "Canceled On Purpose",
+          "organization": null,
+          "email": "evan4@example.com"
+        },
+        "payer": {
+          "chargify_id": 6,
+          "first_name": "Non-Resumable",
+          "last_name": "Canceled On Purpose",
+          "organization": null,
+          "email": "evan4@example.com"
+        },
+        "recipient_emails": [],
+        "net_terms": 0,
+        "memo": "Thanks for your business! If you have any questions, please contact your account manager.",
+        "billing_address": {
+          "street": "200 Billing Rd.",
+          "line2": "Suite 100",
+          "city": "Needham",
+          "state": "MA",
+          "zip": "02494",
+          "country": "US"
+        },
+        "shipping_address": {
+          "street": "100 Shipping St.",
+          "line2": "Apt 200",
+          "city": "Pleasantville",
+          "state": "NC",
+          "zip": "12345",
+          "country": "US"
+        },
+        "line_items": [
+          {
+            "uid": "li_8gk5bwkct3gqk",
+            "title": "Standard Plan",
+            "description": "08/01/2018 - 09/01/2018",
+            "quantity": "1.0",
+            "unit_price": "99.0",
+            "subtotal_amount": "99.0",
+            "discount_amount": "9.9",
+            "tax_amount": "6.01425",
+            "total_amount": "95.11425",
+            "tiered_unit_price": false,
+            "period_range_start": "2018-08-01",
+            "period_range_end": "2018-09-01",
+            "transaction_id": 120,
+            "product_id": 84,
+            "product_version": 1,
+            "component_id": null,
+            "price_point_id": null,
+            "hide": false
+          },
+          {
+            "uid": "li_8gk5bwkct3gqm",
+            "title": "Small Instance (Hourly)",
+            "description": "07/22/2018 - 08/01/2018",
+            "quantity": "162.0",
+            "unit_price": "0.09567901",
+            "subtotal_amount": "15.5",
+            "discount_amount": "1.55",
+            "tax_amount": "0.941625",
+            "total_amount": "14.891625",
+            "tiered_unit_price": true,
+            "period_range_start": "2018-07-22",
+            "period_range_end": "2018-08-01",
+            "transaction_id": 121,
+            "product_id": 84,
+            "product_version": 1,
+            "component_id": 76,
+            "price_point_id": null,
+            "hide": false,
+            "component_cost_data": {
+              "rates": [
+                {
+                  "component_code_id": null,
+                  "price_point_id": 160,
+                  "product_id": 84,
+                  "quantity": "162.0",
+                  "amount": "15.5",
+                  "pricing_scheme": "tiered",
+                  "tiers": [
+                    {
+                      "starting_quantity": 1,
+                      "ending_quantity": 100,
+                      "quantity": "100.0",
+                      "unit_price": "0.0",
+                      "amount": "0.0"
+                    },
+                    {
+                      "starting_quantity": 101,
+                      "ending_quantity": null,
+                      "quantity": "62.0",
+                      "unit_price": "0.25",
+                      "amount": "15.5"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "uid": "li_8gk5bwkct3gqn",
+            "title": "Large Instance (Hourly)",
+            "description": "07/22/2018 - 08/01/2018",
+            "quantity": "194.0",
+            "unit_price": "0.24226804",
+            "subtotal_amount": "47.0",
+            "discount_amount": "4.7",
+            "tax_amount": "2.85525",
+            "total_amount": "45.15525",
+            "tiered_unit_price": true,
+            "period_range_start": "2018-07-22",
+            "period_range_end": "2018-08-01",
+            "transaction_id": 122,
+            "product_id": 84,
+            "product_version": 1,
+            "component_id": 77,
+            "price_point_id": null,
+            "hide": false,
+            "component_cost_data": {
+              "rates": [
+                {
+                  "component_code_id": null,
+                  "price_point_id": 161,
+                  "product_id": 84,
+                  "quantity": "194.0",
+                  "amount": "47.0",
+                  "pricing_scheme": "tiered",
+                  "tiers": [
+                    {
+                      "starting_quantity": 1,
+                      "ending_quantity": 100,
+                      "quantity": "100.0",
+                      "unit_price": "0.0",
+                      "amount": "0.0"
+                    },
+                    {
+                      "starting_quantity": 101,
+                      "ending_quantity": null,
+                      "quantity": "94.0",
+                      "unit_price": "0.5",
+                      "amount": "47.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "uid": "li_8gk5bwkct3gqp",
+            "title": "IP Addresses",
+            "description": "08/01/2018 - 09/01/2018",
+            "quantity": "7.0",
+            "unit_price": "2.0",
+            "subtotal_amount": "14.0",
+            "discount_amount": "1.4",
+            "tax_amount": "0.8505",
+            "total_amount": "13.4505",
+            "tiered_unit_price": false,
+            "period_range_start": "2018-08-01",
+            "period_range_end": "2018-09-01",
+            "transaction_id": 123,
+            "product_id": 84,
+            "product_version": 1,
+            "component_id": 79,
+            "price_point_id": 163,
+            "hide": false,
+            "component_cost_data": {
+              "rates": [
+                {
+                  "component_code_id": null,
+                  "price_point_id": 163,
+                  "product_id": 84,
+                  "quantity": "7.0",
+                  "amount": "14.0",
+                  "pricing_scheme": "per_unit",
+                  "tiers": [
+                    {
+                      "starting_quantity": 1,
+                      "ending_quantity": null,
+                      "quantity": "7.0",
+                      "unit_price": "2.0",
+                      "amount": "14.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "subtotal_amount": "175.5",
+        "discount_amount": "17.55",
+        "discounts": [
+          {
+            "uid": "dli_8gk5bwkct3gqq",
+            "title": "Multi-service discount (10%)",
+            "description": null,
+            "code": "MULTI3",
+            "source_type": "Coupon",
+            "source_id": 40,
+            "discount_type": "percentage",
+            "percentage": "10.0",
+            "eligible_amount": "175.5",
+            "discount_amount": "17.55",
+            "transaction_id": 124,
+            "line_item_breakouts": [
+              {
+                "uid": "li_8gk5bwkct3gqk",
+                "eligible_amount": "99.0",
+                "discount_amount": "9.9"
+              },
+              {
+                "uid": "li_8gk5bwkct3gqm",
+                "eligible_amount": "15.5",
+                "discount_amount": "1.55"
+              },
+              {
+                "uid": "li_8gk5bwkct3gqn",
+                "eligible_amount": "47.0",
+                "discount_amount": "4.7"
+              },
+              {
+                "uid": "li_8gk5bwkct3gqp",
+                "eligible_amount": "14.0",
+                "discount_amount": "1.4"
+              }
+            ]
+          }
+        ],
+        "tax_amount": "10.66",
+        "taxes": [
+          {
+            "uid": "tli_8gk5bwkct3gqr",
+            "title": "NC Sales Tax",
+            "description": null,
+            "source_type": "Tax",
+            "source_id": 1,
+            "percentage": "6.75",
+            "taxable_amount": "157.95",
+            "tax_amount": "10.66",
+            "transaction_id": 125,
+            "line_item_breakouts": [
+              {
+                "uid": "li_8gk5bwkct3gqk",
+                "taxable_amount": "89.1",
+                "tax_amount": "6.01425"
+              },
+              {
+                "uid": "li_8gk5bwkct3gqm",
+                "taxable_amount": "13.95",
+                "tax_amount": "0.941625"
+              },
+              {
+                "uid": "li_8gk5bwkct3gqn",
+                "taxable_amount": "42.3",
+                "tax_amount": "2.85525"
+              },
+              {
+                "uid": "li_8gk5bwkct3gqp",
+                "taxable_amount": "12.6",
+                "tax_amount": "0.8505"
+              }
+            ],
+            "tax_component_breakouts": [
+              {
+                "tax_rule_id": 1,
+                "percentage": "6.75",
+                "country_code": "US",
+                "subdivision_code": "NC"
+              }
+            ]
+          }
+        ],
+        "credit_amount": "0.0",
+        "refund_amount": "0.0",
+        "total_amount": "168.61",
+        "paid_amount": "168.61",
+        "due_amount": "0.0",
+        "credits": [],
+        "refunds": [],
+        "payments": [
+          {
+            "memo": "Non-Resumable Canceled On Purpose - Standard Plan: Renewal payment",
+            "original_amount": "168.61",
+            "applied_amount": "168.61",
+            "transaction_time": "2018-08-01T16:00:00Z",
+            "payment_method": {
+              "card_brand": "visa",
+              "card_expiration": "12/2022",
+              "last_four": null,
+              "masked_card_number": "XXXX-XXXX-XXXX-1111",
+              "type": "credit_card"
+            },
+            "transaction_id": 126,
+            "prepayment": false
+          }
+        ],
+        "custom_fields": [],
+        "display_settings": {
+          "hide_zero_subtotal_lines": false,
+          "include_discounts_on_lines": false
+        }
+      }
+    }
+  ],
+  "page": 48,
+  "per_page": 1,
+  "total_pages": 102
+}
+```
+
+
+# Update Customer Information
+
+This endpoint updates customer information on an open invoice and returns the updated invoice. If you would like to preview changes that will be applied, use the `/invoices/{uid}/customer_information/preview.json` endpoint before.
+
+The endpoint doesn't accept a request body. Customer information differences are calculated on the application side.
+
+```csharp
+UpdateCustomerInformationAsync(
+    string uid)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
+
+## Response Type
+
+[`Task<Models.Invoice>`](../../doc/models/invoice.md)
+
+## Example Usage
+
+```csharp
+string uid = "uid0";
+try
+{
+    Invoice result = await invoicesController.UpdateCustomerInformationAsync(uid);
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Example Response *(as JSON)*
+
+```json
+{
+  "uid": "elit Ut",
+  "site_id": 46283786,
+  "customer_id": -62349460,
+  "subscription_id": 12801726,
+  "number": "dolore et ut",
+  "sequence_number": -84210096,
+  "issue_date": "in e",
+  "due_date": "magna elit tempor occaecat amet",
+  "paid_date": "consectetur elit culpa magna sint",
+  "status": "open",
+  "collection_method": "Excepteur",
+  "payment_instructions": "enim officia",
+  "currency": "dolore",
+  "consolidation_level": "none",
+  "product_name": "occaecat veniam culpa",
+  "product_family_name": "qui commodo ea dolore cillum",
+  "seller": {
+    "name": "co",
+    "phone": "ullamco in officia"
+  },
+  "customer": {
+    "chargify_id": -55826334,
+    "first_name": "deserunt",
+    "last_name": "velit dolore",
+    "email": "aliquip sed velit Lorem"
+  },
+  "memo": "ea cupidatat deserunt",
+  "billing_address": {
+    "street": "qui commodo cupidatat sunt",
+    "line2": "ut officia enim",
+    "city": "velit minim dolore sint nulla",
+    "state": "velit",
+    "zip": "ullamco",
+    "country": "irure est laborum deserun"
+  },
+  "shipping_address": {
+    "street": "do fugiat dolore deserunt officia",
+    "line2": "ipsum cillum",
+    "city": "aliqua laboris incididunt ut",
+    "state": "et fugiat sit",
+    "zip": "dolore do",
+    "country": "Excepteur consequat cillum"
+  },
+  "subtotal_amount": "dolore mollit",
+  "discount_amount": "aute",
+  "tax_amount": "eu aliqua est velit ea",
+  "total_amount": "ut non",
+  "credit_amount": "sit",
+  "refund_amount": "et eiusmod qui sed",
+  "paid_amount": "amet nulla s",
+  "due_amount": "non esse ullamco",
+  "line_items": [
+    {
+      "description": "qui",
+      "price_point_id": -95020509,
+      "tax_amount": "occaecat deserunt veniam",
+      "subtotal_amount": "commodo consequat tempor et Duis"
+    },
+    {
+      "uid": "",
+      "subtotal_amount": "ven"
+    },
+    {
+      "price_point_id": 94750853,
+      "product_id": 79058036,
+      "tax_amount": "Duis",
+      "subtotal_amount": "irure officia ipsum"
+    },
+    {
+      "unit_price": "eiusmod consequat ut nostrud",
+      "tax_amount": "quis nulla proident"
+    },
+    {
+      "period_range_end": "ut dolor",
+      "product_id": 57352537,
+      "description": "minim in dolore Ut Excepteur",
+      "uid": "sit qui in ullamco anim"
+    }
+  ],
+  "discounts": [
+    {
+      "title": "nostrud"
+    }
+  ],
+  "taxes": [
+    {
+      "source_type": "enim",
+      "line_item_breakouts": [
+        {
+          "uid": "in ipsum",
+          "tax_amount": "velit",
+          "taxable_amount": "quis sint"
+        },
+        {
+          "uid": "co"
+        }
+      ]
+    },
+    {
+      "uid": "enim irure in",
+      "title": "incididunt est mollit irure"
+    }
+  ],
+  "credits": [
+    {
+      "uid": "exercitation eiusmod",
+      "transaction_time": "Lorem ea",
+      "credit_note_number": "qui fugiat labore laborum",
+      "credit_note_uid": "ipsum sunt"
+    },
+    {
+      "memo": "dolor"
+    }
+  ],
+  "refunds": [
+    {
+      "memo": "deserunt elit"
+    },
+    {
+      "original_amount": "Duis nulla"
+    }
+  ],
+  "payments": [
+    {
+      "prepayment": false,
+      "memo": "enim Excepteur Lorem magna sit"
+    },
+    {
+      "transaction_time": "deserunt",
+      "prepayment": false,
+      "payment_method": {
+        "details": "labore ut et",
+        "kind": "dolor qui",
+        "memo": "ea commodo",
+        "type": "fugiat veniam",
+        "card_brand": "consequat",
+        "card_expiration": "aliqua a",
+        "last_four": "ut in consectetur sed",
+        "masked_card_number": "minim ea ullamco nostrud tempor"
+      }
+    },
+    {
+      "prepayment": true,
+      "transaction_id": 67527234
+    },
+    {
+      "original_amount": "c",
+      "memo": "dolore fugiat labore"
+    }
+  ],
+  "custom_fields": [
+    {
+      "name": "non nul",
+      "value": "consectetur aliqua",
+      "owner_type": "ad",
+      "owner_id": 18482224
+    },
+    {
+      "value": "anim",
+      "owner_type": "in"
+    },
+    {
+      "owner_id": -13438519
+    },
+    {
+      "name": "ullamco non deserunt in"
+    }
+  ],
+  "public_url": "dolo",
+  "previous_balance_data": {
+    "capture_date": "aliqua velit quis voluptate",
+    "invoices": [
+      {
+        "number": "veniam dolore labore ipsum cupidatat",
+        "uid": "tempor",
+        "outstanding_amount": "Excepteur nostrud irur"
+      },
+      {
+        "outstanding_amount": "id"
+      }
+    ]
+  }
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 404 | Not Found | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
+| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
 
 
 # Create Invoice
@@ -2737,6 +2970,69 @@ catch (ApiException e)
 | 422 | Unprocessable Entity (WebDAV) | [`NestedErrorResponseException`](../../doc/models/nested-error-response-exception.md) |
 
 
+# Issue Invoice
+
+This endpoint allows you to issue an invoice that is in "pending" status. For example, you can issue an invoice that was created when allocating new quantity on a component and using "accrue charges" option.
+
+You cannot issue a pending child invoice that was created for a member subscription in a group.
+
+For Remittance subscriptions, the invoice will go into "open" status and payment won't be attempted. The value for `on_failed_payment` would be rejected if sent. Any prepayments or service credits that exist on subscription will be automatically applied. Additionally, if setting is on, an email will be sent for issued invoice.
+
+For Automatic subscriptions, prepayments and service credits will apply to the invoice and before payment is attempted. On successful payment, the invoice will go into "paid" status and email will be sent to the customer (if setting applies). When payment fails, the next event depends on the `on_failed_payment` value:
+
+- `leave_open_invoice` - prepayments and credits applied to invoice; invoice status set to "open"; email sent to the customer for the issued invoice (if setting applies); payment failure recorded in the invoice history. This is the default option.
+- `rollback_to_pending` - prepayments and credits not applied; invoice remains in "pending" status; no email sent to the customer; payment failure recorded in the invoice history.
+- `initiate_dunning` - prepayments and credits applied to the invoice; invoice status set to "open"; email sent to the customer for the issued invoice (if setting applies); payment failure recorded in the invoice history; subscription will  most likely go into "past_due" or "canceled" state (depending upon net terms and dunning settings).
+
+```csharp
+IssueInvoiceAsync(
+    string uid,
+    Models.IssueInvoiceRequest body = null)
+```
+
+## Parameters
+
+| Parameter | Type | Tags | Description |
+|  --- | --- | --- | --- |
+| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
+| `body` | [`IssueInvoiceRequest`](../../doc/models/issue-invoice-request.md) | Body, Optional | - |
+
+## Response Type
+
+[`Task<Models.Invoice>`](../../doc/models/invoice.md)
+
+## Example Usage
+
+```csharp
+string uid = "uid0";
+IssueInvoiceRequest body = new IssueInvoiceRequest
+{
+    OnFailedPayment = FailedPaymentAction.LeaveOpenInvoice,
+};
+
+try
+{
+    Invoice result = await invoicesController.IssueInvoiceAsync(
+        uid,
+        body
+    );
+}
+catch (ApiException e)
+{
+    // TODO: Handle exception here
+    Console.WriteLine(e.Message);
+}
+```
+
+## Errors
+
+| HTTP Status Code | Error Description | Exception Class |
+|  --- | --- | --- |
+| 401 | Unauthorized | `ApiException` |
+| 404 | Not Found | `ApiException` |
+| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
+
+
 # Send Invoice
 
 This endpoint allows for invoices to be programmatically delivered via email. This endpoint supports the delivery of both ad-hoc and automatically generated invoices. Additionally, this endpoint supports email delivery to direct recipients, carbon-copy (cc) recipients, and blind carbon-copy (bcc) recipients.
@@ -2897,301 +3193,5 @@ catch (ApiException e)
 | HTTP Status Code | Error Description | Exception Class |
 |  --- | --- | --- |
 | 404 | Not Found | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-
-
-# Update Customer Information
-
-This endpoint updates customer information on an open invoice and returns the updated invoice. If you would like to preview changes that will be applied, use the `/invoices/{uid}/customer_information/preview.json` endpoint before.
-
-The endpoint doesn't accept a request body. Customer information differences are calculated on the application side.
-
-```csharp
-UpdateCustomerInformationAsync(
-    string uid)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
-
-## Response Type
-
-[`Task<Models.Invoice>`](../../doc/models/invoice.md)
-
-## Example Usage
-
-```csharp
-string uid = "uid0";
-try
-{
-    Invoice result = await invoicesController.UpdateCustomerInformationAsync(uid);
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Example Response *(as JSON)*
-
-```json
-{
-  "uid": "elit Ut",
-  "site_id": 46283786,
-  "customer_id": -62349460,
-  "subscription_id": 12801726,
-  "number": "dolore et ut",
-  "sequence_number": -84210096,
-  "issue_date": "in e",
-  "due_date": "magna elit tempor occaecat amet",
-  "paid_date": "consectetur elit culpa magna sint",
-  "status": "open",
-  "collection_method": "Excepteur",
-  "payment_instructions": "enim officia",
-  "currency": "dolore",
-  "consolidation_level": "none",
-  "product_name": "occaecat veniam culpa",
-  "product_family_name": "qui commodo ea dolore cillum",
-  "seller": {
-    "name": "co",
-    "phone": "ullamco in officia"
-  },
-  "customer": {
-    "chargify_id": -55826334,
-    "first_name": "deserunt",
-    "last_name": "velit dolore",
-    "email": "aliquip sed velit Lorem"
-  },
-  "memo": "ea cupidatat deserunt",
-  "billing_address": {
-    "street": "qui commodo cupidatat sunt",
-    "line2": "ut officia enim",
-    "city": "velit minim dolore sint nulla",
-    "state": "velit",
-    "zip": "ullamco",
-    "country": "irure est laborum deserun"
-  },
-  "shipping_address": {
-    "street": "do fugiat dolore deserunt officia",
-    "line2": "ipsum cillum",
-    "city": "aliqua laboris incididunt ut",
-    "state": "et fugiat sit",
-    "zip": "dolore do",
-    "country": "Excepteur consequat cillum"
-  },
-  "subtotal_amount": "dolore mollit",
-  "discount_amount": "aute",
-  "tax_amount": "eu aliqua est velit ea",
-  "total_amount": "ut non",
-  "credit_amount": "sit",
-  "refund_amount": "et eiusmod qui sed",
-  "paid_amount": "amet nulla s",
-  "due_amount": "non esse ullamco",
-  "line_items": [
-    {
-      "description": "qui",
-      "price_point_id": -95020509,
-      "tax_amount": "occaecat deserunt veniam",
-      "subtotal_amount": "commodo consequat tempor et Duis"
-    },
-    {
-      "uid": "",
-      "subtotal_amount": "ven"
-    },
-    {
-      "price_point_id": 94750853,
-      "product_id": 79058036,
-      "tax_amount": "Duis",
-      "subtotal_amount": "irure officia ipsum"
-    },
-    {
-      "unit_price": "eiusmod consequat ut nostrud",
-      "tax_amount": "quis nulla proident"
-    },
-    {
-      "period_range_end": "ut dolor",
-      "product_id": 57352537,
-      "description": "minim in dolore Ut Excepteur",
-      "uid": "sit qui in ullamco anim"
-    }
-  ],
-  "discounts": [
-    {
-      "title": "nostrud"
-    }
-  ],
-  "taxes": [
-    {
-      "source_type": "enim",
-      "line_item_breakouts": [
-        {
-          "uid": "in ipsum",
-          "tax_amount": "velit",
-          "taxable_amount": "quis sint"
-        },
-        {
-          "uid": "co"
-        }
-      ]
-    },
-    {
-      "uid": "enim irure in",
-      "title": "incididunt est mollit irure"
-    }
-  ],
-  "credits": [
-    {
-      "uid": "exercitation eiusmod",
-      "transaction_time": "Lorem ea",
-      "credit_note_number": "qui fugiat labore laborum",
-      "credit_note_uid": "ipsum sunt"
-    },
-    {
-      "memo": "dolor"
-    }
-  ],
-  "refunds": [
-    {
-      "memo": "deserunt elit"
-    },
-    {
-      "original_amount": "Duis nulla"
-    }
-  ],
-  "payments": [
-    {
-      "prepayment": false,
-      "memo": "enim Excepteur Lorem magna sit"
-    },
-    {
-      "transaction_time": "deserunt",
-      "prepayment": false,
-      "payment_method": {
-        "details": "labore ut et",
-        "kind": "dolor qui",
-        "memo": "ea commodo",
-        "type": "fugiat veniam",
-        "card_brand": "consequat",
-        "card_expiration": "aliqua a",
-        "last_four": "ut in consectetur sed",
-        "masked_card_number": "minim ea ullamco nostrud tempor"
-      }
-    },
-    {
-      "prepayment": true,
-      "transaction_id": 67527234
-    },
-    {
-      "original_amount": "c",
-      "memo": "dolore fugiat labore"
-    }
-  ],
-  "custom_fields": [
-    {
-      "name": "non nul",
-      "value": "consectetur aliqua",
-      "owner_type": "ad",
-      "owner_id": 18482224
-    },
-    {
-      "value": "anim",
-      "owner_type": "in"
-    },
-    {
-      "owner_id": -13438519
-    },
-    {
-      "name": "ullamco non deserunt in"
-    }
-  ],
-  "public_url": "dolo",
-  "previous_balance_data": {
-    "capture_date": "aliqua velit quis voluptate",
-    "invoices": [
-      {
-        "number": "veniam dolore labore ipsum cupidatat",
-        "uid": "tempor",
-        "outstanding_amount": "Excepteur nostrud irur"
-      },
-      {
-        "outstanding_amount": "id"
-      }
-    ]
-  }
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 404 | Not Found | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-| 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
-
-
-# Issue Invoice
-
-This endpoint allows you to issue an invoice that is in "pending" status. For example, you can issue an invoice that was created when allocating new quantity on a component and using "accrue charges" option.
-
-You cannot issue a pending child invoice that was created for a member subscription in a group.
-
-For Remittance subscriptions, the invoice will go into "open" status and payment won't be attempted. The value for `on_failed_payment` would be rejected if sent. Any prepayments or service credits that exist on subscription will be automatically applied. Additionally, if setting is on, an email will be sent for issued invoice.
-
-For Automatic subscriptions, prepayments and service credits will apply to the invoice and before payment is attempted. On successful payment, the invoice will go into "paid" status and email will be sent to the customer (if setting applies). When payment fails, the next event depends on the `on_failed_payment` value:
-
-- `leave_open_invoice` - prepayments and credits applied to invoice; invoice status set to "open"; email sent to the customer for the issued invoice (if setting applies); payment failure recorded in the invoice history. This is the default option.
-- `rollback_to_pending` - prepayments and credits not applied; invoice remains in "pending" status; no email sent to the customer; payment failure recorded in the invoice history.
-- `initiate_dunning` - prepayments and credits applied to the invoice; invoice status set to "open"; email sent to the customer for the issued invoice (if setting applies); payment failure recorded in the invoice history; subscription will  most likely go into "past_due" or "canceled" state (depending upon net terms and dunning settings).
-
-```csharp
-IssueInvoiceAsync(
-    string uid,
-    Models.IssueInvoiceRequest body = null)
-```
-
-## Parameters
-
-| Parameter | Type | Tags | Description |
-|  --- | --- | --- | --- |
-| `uid` | `string` | Template, Required | The unique identifier for the invoice, this does not refer to the public facing invoice number. |
-| `body` | [`IssueInvoiceRequest`](../../doc/models/issue-invoice-request.md) | Body, Optional | - |
-
-## Response Type
-
-[`Task<Models.Invoice>`](../../doc/models/invoice.md)
-
-## Example Usage
-
-```csharp
-string uid = "uid0";
-IssueInvoiceRequest body = new IssueInvoiceRequest
-{
-    OnFailedPayment = FailedPaymentAction.LeaveOpenInvoice,
-};
-
-try
-{
-    Invoice result = await invoicesController.IssueInvoiceAsync(
-        uid,
-        body
-    );
-}
-catch (ApiException e)
-{
-    // TODO: Handle exception here
-    Console.WriteLine(e.Message);
-}
-```
-
-## Errors
-
-| HTTP Status Code | Error Description | Exception Class |
-|  --- | --- | --- |
-| 401 | Unauthorized | `ApiException` |
-| 404 | Not Found | `ApiException` |
 | 422 | Unprocessable Entity (WebDAV) | [`ErrorListResponseException`](../../doc/models/error-list-response-exception.md) |
 

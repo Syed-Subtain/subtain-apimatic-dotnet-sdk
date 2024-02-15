@@ -151,7 +151,9 @@ namespace AdvancedBilling.Standard.Models
         public DateTime? EndDatetime { get; set; }
 
         /// <summary>
+        /// <![CDATA[
         /// The value of the metadata field specified in the parameter. Use in query `metadata[my-field]=value&metadata[other-field]=another_value`.
+        /// ]]>
         /// </summary>
         [JsonProperty("metadata", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, string> Metadata { get; set; }

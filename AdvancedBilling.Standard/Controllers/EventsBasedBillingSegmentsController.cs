@@ -13,7 +13,6 @@ namespace AdvancedBilling.Standard.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Authentication;
     using AdvancedBilling.Standard.Exceptions;
     using AdvancedBilling.Standard.Http.Client;
     using AdvancedBilling.Standard.Utilities;
@@ -65,7 +64,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.SegmentResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Post, "/components/{component_id}/price_points/{price_point_id}/segments.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Template(_template => _template.Setup("component_id", componentId).Required())
@@ -76,49 +75,53 @@ namespace AdvancedBilling.Standard.Controllers
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("403", CreateErrorCase("Forbidden", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new EventBasedBillingSegmentErrorsException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
-        /// This endpoint allows you to fetch Segments created for a given Price Point. They will be returned in the order of creation.
-        /// You can pass `page` and `per_page` parameters in order to access all of the segments. By default it will return `30` records. You can set `per_page` to `200` at most.
+        /// This endpoint allows you to update multiple segments in one request. The array of segments can contain up to `1000` records.
+        /// If any of the records contain an error the whole request would fail and none of the requested segments get updated. The error response contains a message for only the one segment that failed validation, with the corresponding index in the array.
         /// You may specify component and/or price point by using either the numeric ID or the `handle:gold` syntax.
         /// </summary>
-        /// <param name="input">Object containing request parameters.</param>
+        /// <param name="componentId">Required parameter: ID or Handle for the Component.</param>
+        /// <param name="pricePointId">Required parameter: ID or Handle for the Price Point belonging to the Component.</param>
+        /// <param name="body">Optional parameter: Example: .</param>
         /// <returns>Returns the Models.ListSegmentsResponse response from the API call.</returns>
-        public Models.ListSegmentsResponse ListSegmentsForPricePoint(
-                Models.ListSegmentsForPricePointInput input)
-            => CoreHelper.RunTask(ListSegmentsForPricePointAsync(input));
+        public Models.ListSegmentsResponse UpdateSegments(
+                string componentId,
+                string pricePointId,
+                Models.BulkUpdateSegments body = null)
+            => CoreHelper.RunTask(UpdateSegmentsAsync(componentId, pricePointId, body));
 
         /// <summary>
-        /// This endpoint allows you to fetch Segments created for a given Price Point. They will be returned in the order of creation.
-        /// You can pass `page` and `per_page` parameters in order to access all of the segments. By default it will return `30` records. You can set `per_page` to `200` at most.
+        /// This endpoint allows you to update multiple segments in one request. The array of segments can contain up to `1000` records.
+        /// If any of the records contain an error the whole request would fail and none of the requested segments get updated. The error response contains a message for only the one segment that failed validation, with the corresponding index in the array.
         /// You may specify component and/or price point by using either the numeric ID or the `handle:gold` syntax.
         /// </summary>
-        /// <param name="input">Object containing request parameters.</param>
+        /// <param name="componentId">Required parameter: ID or Handle for the Component.</param>
+        /// <param name="pricePointId">Required parameter: ID or Handle for the Price Point belonging to the Component.</param>
+        /// <param name="body">Optional parameter: Example: .</param>
         /// <param name="cancellationToken"> cancellationToken. </param>
         /// <returns>Returns the Models.ListSegmentsResponse response from the API call.</returns>
-        public async Task<Models.ListSegmentsResponse> ListSegmentsForPricePointAsync(
-                Models.ListSegmentsForPricePointInput input,
+        public async Task<Models.ListSegmentsResponse> UpdateSegmentsAsync(
+                string componentId,
+                string pricePointId,
+                Models.BulkUpdateSegments body = null,
                 CancellationToken cancellationToken = default)
             => await CreateApiCall<Models.ListSegmentsResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Get, "/components/{component_id}/price_points/{price_point_id}/segments.json")
-                  .WithAuth("global")
+                  .Setup(HttpMethod.Put, "/components/{component_id}/price_points/{price_point_id}/segments/bulk.json")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
-                      .Template(_template => _template.Setup("component_id", input.ComponentId).Required())
-                      .Template(_template => _template.Setup("price_point_id", input.PricePointId).Required())
-                      .Query(_query => _query.Setup("page", input.Page))
-                      .Query(_query => _query.Setup("per_page", input.PerPage))
-                      .Query(_query => _query.Setup("filter[segment_property_1_value]", input.FilterSegmentProperty1Value))
-                      .Query(_query => _query.Setup("filter[segment_property_2_value]", input.FilterSegmentProperty2Value))
-                      .Query(_query => _query.Setup("filter[segment_property_3_value]", input.FilterSegmentProperty3Value))
-                      .Query(_query => _query.Setup("filter[segment_property_4_value]", input.FilterSegmentProperty4Value))))
+                      .Body(_bodyParameter => _bodyParameter.Setup(body))
+                      .Template(_template => _template.Setup("component_id", componentId).Required())
+                      .Template(_template => _template.Setup("price_point_id", pricePointId).Required())
+                      .Header(_header => _header.Setup("Content-Type", "application/json"))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("403", CreateErrorCase("Forbidden", (_reason, _context) => new ApiException(_reason, _context)))
-                  .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new EventBasedBillingListSegmentsErrorsException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+                  .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new EventBasedBillingSegmentException(_reason, _context))))
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This endpoint updates a single Segment for a Component with a segmented Metric. It allows you to update the pricing for the segment.
@@ -155,7 +158,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.SegmentResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Put, "/components/{component_id}/price_points/{price_point_id}/segments/{id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Template(_template => _template.Setup("component_id", componentId).Required())
@@ -167,7 +170,7 @@ namespace AdvancedBilling.Standard.Controllers
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("403", CreateErrorCase("Forbidden", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new EventBasedBillingSegmentErrorsException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This endpoint allows you to delete a Segment with specified ID.
@@ -199,7 +202,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<VoidType>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Delete, "/components/{component_id}/price_points/{price_point_id}/segments/{id}.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("component_id", componentId).Required())
                       .Template(_template => _template.Setup("price_point_id", pricePointId).Required())
@@ -209,7 +212,7 @@ namespace AdvancedBilling.Standard.Controllers
                   .ErrorCase("403", CreateErrorCase("Forbidden", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("404", CreateErrorCase("Not Found", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new ApiException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// This endpoint allows you to create multiple segments in one request. The array of segments can contain up to `2000` records.
@@ -244,7 +247,7 @@ namespace AdvancedBilling.Standard.Controllers
             => await CreateApiCall<Models.ListSegmentsResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Post, "/components/{component_id}/price_points/{price_point_id}/segments/bulk.json")
-                  .WithAuth("global")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
                       .Body(_bodyParameter => _bodyParameter.Setup(body))
                       .Template(_template => _template.Setup("component_id", componentId).Required())
@@ -255,52 +258,48 @@ namespace AdvancedBilling.Standard.Controllers
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("403", CreateErrorCase("Forbidden", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new EventBasedBillingSegmentException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
         /// <summary>
-        /// This endpoint allows you to update multiple segments in one request. The array of segments can contain up to `1000` records.
-        /// If any of the records contain an error the whole request would fail and none of the requested segments get updated. The error response contains a message for only the one segment that failed validation, with the corresponding index in the array.
+        /// This endpoint allows you to fetch Segments created for a given Price Point. They will be returned in the order of creation.
+        /// You can pass `page` and `per_page` parameters in order to access all of the segments. By default it will return `30` records. You can set `per_page` to `200` at most.
         /// You may specify component and/or price point by using either the numeric ID or the `handle:gold` syntax.
         /// </summary>
-        /// <param name="componentId">Required parameter: ID or Handle for the Component.</param>
-        /// <param name="pricePointId">Required parameter: ID or Handle for the Price Point belonging to the Component.</param>
-        /// <param name="body">Optional parameter: Example: .</param>
+        /// <param name="input">Object containing request parameters.</param>
         /// <returns>Returns the Models.ListSegmentsResponse response from the API call.</returns>
-        public Models.ListSegmentsResponse UpdateSegments(
-                string componentId,
-                string pricePointId,
-                Models.BulkUpdateSegments body = null)
-            => CoreHelper.RunTask(UpdateSegmentsAsync(componentId, pricePointId, body));
+        public Models.ListSegmentsResponse ListSegmentsForPricePoint(
+                Models.ListSegmentsForPricePointInput input)
+            => CoreHelper.RunTask(ListSegmentsForPricePointAsync(input));
 
         /// <summary>
-        /// This endpoint allows you to update multiple segments in one request. The array of segments can contain up to `1000` records.
-        /// If any of the records contain an error the whole request would fail and none of the requested segments get updated. The error response contains a message for only the one segment that failed validation, with the corresponding index in the array.
+        /// This endpoint allows you to fetch Segments created for a given Price Point. They will be returned in the order of creation.
+        /// You can pass `page` and `per_page` parameters in order to access all of the segments. By default it will return `30` records. You can set `per_page` to `200` at most.
         /// You may specify component and/or price point by using either the numeric ID or the `handle:gold` syntax.
         /// </summary>
-        /// <param name="componentId">Required parameter: ID or Handle for the Component.</param>
-        /// <param name="pricePointId">Required parameter: ID or Handle for the Price Point belonging to the Component.</param>
-        /// <param name="body">Optional parameter: Example: .</param>
+        /// <param name="input">Object containing request parameters.</param>
         /// <param name="cancellationToken"> cancellationToken. </param>
         /// <returns>Returns the Models.ListSegmentsResponse response from the API call.</returns>
-        public async Task<Models.ListSegmentsResponse> UpdateSegmentsAsync(
-                string componentId,
-                string pricePointId,
-                Models.BulkUpdateSegments body = null,
+        public async Task<Models.ListSegmentsResponse> ListSegmentsForPricePointAsync(
+                Models.ListSegmentsForPricePointInput input,
                 CancellationToken cancellationToken = default)
             => await CreateApiCall<Models.ListSegmentsResponse>()
               .RequestBuilder(_requestBuilder => _requestBuilder
-                  .Setup(HttpMethod.Put, "/components/{component_id}/price_points/{price_point_id}/segments/bulk.json")
-                  .WithAuth("global")
+                  .Setup(HttpMethod.Get, "/components/{component_id}/price_points/{price_point_id}/segments.json")
+                  .WithAuth("BasicAuth")
                   .Parameters(_parameters => _parameters
-                      .Body(_bodyParameter => _bodyParameter.Setup(body))
-                      .Template(_template => _template.Setup("component_id", componentId).Required())
-                      .Template(_template => _template.Setup("price_point_id", pricePointId).Required())
-                      .Header(_header => _header.Setup("Content-Type", "application/json"))))
+                      .Template(_template => _template.Setup("component_id", input.ComponentId).Required())
+                      .Template(_template => _template.Setup("price_point_id", input.PricePointId).Required())
+                      .Query(_query => _query.Setup("page", input.Page))
+                      .Query(_query => _query.Setup("per_page", input.PerPage))
+                      .Query(_query => _query.Setup("filter[segment_property_1_value]", input.FilterSegmentProperty1Value))
+                      .Query(_query => _query.Setup("filter[segment_property_2_value]", input.FilterSegmentProperty2Value))
+                      .Query(_query => _query.Setup("filter[segment_property_3_value]", input.FilterSegmentProperty3Value))
+                      .Query(_query => _query.Setup("filter[segment_property_4_value]", input.FilterSegmentProperty4Value))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context)))
                   .ErrorCase("403", CreateErrorCase("Forbidden", (_reason, _context) => new ApiException(_reason, _context)))
-                  .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new EventBasedBillingSegmentException(_reason, _context))))
-              .ExecuteAsync(cancellationToken);
+                  .ErrorCase("422", CreateErrorCase("Unprocessable Entity (WebDAV)", (_reason, _context) => new EventBasedBillingListSegmentsErrorsException(_reason, _context))))
+              .ExecuteAsync(cancellationToken).ConfigureAwait(false);
     }
 }
