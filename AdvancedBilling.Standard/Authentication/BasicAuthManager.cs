@@ -1,15 +1,15 @@
 // <copyright file="BasicAuthManager.cs" company="APIMatic">
 // Copyright (c) APIMatic. All rights reserved.
 // </copyright>
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using AdvancedBilling.Standard.Http.Request;
+using APIMatic.Core.Authentication;
+
 namespace AdvancedBilling.Standard.Authentication
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Threading.Tasks;
-    using AdvancedBilling.Standard.Http.Request;
-    using APIMatic.Core.Authentication;
-
     /// <summary>
     /// BasicAuthManager Class.
     /// </summary>
@@ -121,7 +121,7 @@ namespace AdvancedBilling.Standard.Authentication
             /// Creates an object of the BasicAuthModel using the values provided for the builder.
             /// </summary>
             /// <returns>BasicAuthModel.</returns>
-            internal BasicAuthModel Build()
+            public BasicAuthModel Build()
             {
                 return new BasicAuthModel()
                 {

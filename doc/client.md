@@ -7,14 +7,14 @@ The following parameters are configurable for the API Client:
 |  --- | --- | --- |
 | `Subdomain` | `string` | The subdomain for your Chargify site.<br>*Default*: `"subdomain"` |
 | `Domain` | `string` | The Chargify server domain.<br>*Default*: `"chargify.com"` |
-| `Environment` | Environment | The API environment. <br> **Default: `Environment.Production`** |
+| `Environment` | `Environment` | The API environment. <br> **Default: `Environment.Production`** |
 | `Timeout` | `TimeSpan` | Http client timeout.<br>*Default*: `TimeSpan.FromSeconds(30)` |
-| `BasicAuthCredentials` | [`BasicAuthCredentials`]($a/basic-authentication.md) | The Credentials Setter for Basic Authentication |
+| `BasicAuthCredentials` | [`BasicAuthCredentials`](auth/basic-authentication.md) | The Credentials Setter for Basic Authentication |
 
 The API client can be initialized as follows:
 
 ```csharp
-AdvancedBilling.Standard.AdvancedBillingClient client = new AdvancedBilling.Standard.AdvancedBillingClient.Builder()
+AdvancedBillingClient client = new AdvancedBillingClient.Builder()
     .BasicAuthCredentials(
         new BasicAuthModel.Builder(
             "BasicAuthUserName",
@@ -76,7 +76,7 @@ The gateway for the SDK. This class acts as a factory for the Controllers and al
 | Environment | Current API environment. | `Environment` |
 | Subdomain | The subdomain for your Chargify site. | `string` |
 | Domain | The Chargify server domain. | `string` |
-| BasicAuthCredentials | Gets the credentials to use with BasicAuth. | [`IBasicAuthCredentials`]($a/basic-authentication.md) |
+| BasicAuthCredentials | Gets the credentials to use with BasicAuth. | [`IBasicAuthCredentials`](auth/basic-authentication.md) |
 
 ### Methods
 

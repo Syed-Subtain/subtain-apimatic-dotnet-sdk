@@ -579,7 +579,7 @@ ResumeSubscriptionAsync(
 | Parameter | Type | Tags | Description |
 |  --- | --- | --- | --- |
 | `subscriptionId` | `string` | Template, Required | The Chargify id of the subscription |
-| `calendarBillingResumptionCharge` | [`ResumptionCharge?`](../../doc/models/resumption-charge.md) | Query, Optional | (For calendar billing subscriptions only) The way that the resumed subscription's charge should be handled |
+| `calendarBillingResumptionCharge` | [`ResumptionCharge?`](../../doc/models/resumption-charge.md) | Query, Optional | (For calendar billing subscriptions only) The way that the resumed subscription's charge should be handled<br>**Default**: `ResumptionCharge.prorated` |
 
 ## Response Type
 
@@ -1287,7 +1287,7 @@ PreviewRenewalAsync(
 string subscriptionId = "subscription_id0";
 RenewalPreviewRequest body = new RenewalPreviewRequest
 {
-    Components = new List<Models.RenewalPreviewComponent>
+    Components = new List<RenewalPreviewComponent>
     {
         new RenewalPreviewComponent
         {

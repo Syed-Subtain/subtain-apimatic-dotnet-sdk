@@ -1,29 +1,29 @@
 // <copyright file="SubscriptionComponentsController.cs" company="APIMatic">
 // Copyright (c) APIMatic. All rights reserved.
 // </copyright>
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using AdvancedBilling.Standard;
+using AdvancedBilling.Standard.Exceptions;
+using AdvancedBilling.Standard.Http.Client;
+using AdvancedBilling.Standard.Models.Containers;
+using AdvancedBilling.Standard.Utilities;
+using APIMatic.Core;
+using APIMatic.Core.Types;
+using APIMatic.Core.Utilities;
+using APIMatic.Core.Utilities.Date.Xml;
+using Newtonsoft.Json.Converters;
+using System.Net.Http;
+
 namespace AdvancedBilling.Standard.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Dynamic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Exceptions;
-    using AdvancedBilling.Standard.Http.Client;
-    using AdvancedBilling.Standard.Models.Containers;
-    using AdvancedBilling.Standard.Utilities;
-    using APIMatic.Core;
-    using APIMatic.Core.Types;
-    using APIMatic.Core.Utilities;
-    using APIMatic.Core.Utilities.Date.Xml;
-    using Newtonsoft.Json.Converters;
-    using System.Net.Http;
-
     /// <summary>
     /// SubscriptionComponentsController.
     /// </summary>
@@ -458,7 +458,7 @@ namespace AdvancedBilling.Standard.Controllers
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("subscription_id", subscriptionId).Required())
                       .Template(_template => _template.Setup("component_id", componentId))
-                      .Query(_query => _query.Setup("page", (page != null) ? page : 1))))
+                      .Query(_query => _query.Setup("page", page ?? 1))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404()
                   .ErrorCase("401", CreateErrorCase("Unauthorized", (_reason, _context) => new ApiException(_reason, _context)))

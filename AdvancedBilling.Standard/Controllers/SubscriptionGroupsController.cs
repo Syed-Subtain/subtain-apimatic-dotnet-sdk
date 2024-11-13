@@ -1,28 +1,29 @@
 // <copyright file="SubscriptionGroupsController.cs" company="APIMatic">
 // Copyright (c) APIMatic. All rights reserved.
 // </copyright>
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using AdvancedBilling.Standard;
+using AdvancedBilling.Standard.Exceptions;
+using AdvancedBilling.Standard.Http.Client;
+using AdvancedBilling.Standard.Utilities;
+using APIMatic.Core;
+using APIMatic.Core.Http.Configuration;
+using APIMatic.Core.Types;
+using APIMatic.Core.Utilities;
+using APIMatic.Core.Utilities.Date.Xml;
+using Newtonsoft.Json.Converters;
+using System.Net.Http;
+
 namespace AdvancedBilling.Standard.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Dynamic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Exceptions;
-    using AdvancedBilling.Standard.Http.Client;
-    using AdvancedBilling.Standard.Utilities;
-    using APIMatic.Core;
-    using APIMatic.Core.Types;
-    using APIMatic.Core.Utilities;
-    using APIMatic.Core.Utilities.Date.Xml;
-    using Newtonsoft.Json.Converters;
-    using System.Net.Http;
-
     /// <summary>
     /// SubscriptionGroupsController.
     /// </summary>
@@ -85,7 +86,7 @@ namespace AdvancedBilling.Standard.Controllers
         public async Task<Models.FullSubscriptionGroupResponse> ReadSubscriptionGroupAsync(
                 string uid,
                 CancellationToken cancellationToken = default)
-            => await CreateApiCall<Models.FullSubscriptionGroupResponse>()
+            => await CreateApiCall<Models.FullSubscriptionGroupResponse>(ArraySerialization.UnIndexed)
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/subscription_groups/{uid}.json")
                   .WithAuth("BasicAuth")
@@ -293,7 +294,7 @@ namespace AdvancedBilling.Standard.Controllers
         public async Task<Models.ListSubscriptionGroupsResponse> ListSubscriptionGroupsAsync(
                 Models.ListSubscriptionGroupsInput input,
                 CancellationToken cancellationToken = default)
-            => await CreateApiCall<Models.ListSubscriptionGroupsResponse>()
+            => await CreateApiCall<Models.ListSubscriptionGroupsResponse>(ArraySerialization.UnIndexed)
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/subscription_groups.json")
                   .WithAuth("BasicAuth")

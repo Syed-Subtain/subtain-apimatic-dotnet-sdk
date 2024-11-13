@@ -1,3 +1,6 @@
+// <copyright file="EBBComponentPricingScheme.cs" company="APIMatic">
+// Copyright (c) APIMatic. All rights reserved.
+// </copyright>
 using APIMatic.Core.Utilities.Converters;
 using Newtonsoft.Json;
 using System;

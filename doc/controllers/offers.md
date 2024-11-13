@@ -60,7 +60,7 @@ CreateOfferRequest body = new CreateOfferRequest
         Description = "A Star Wars Story",
         ProductId = 31,
         ProductPricePointId = 102,
-        Components = new List<Models.CreateOfferComponent>
+        Components = new List<CreateOfferComponent>
         {
             new CreateOfferComponent
             {

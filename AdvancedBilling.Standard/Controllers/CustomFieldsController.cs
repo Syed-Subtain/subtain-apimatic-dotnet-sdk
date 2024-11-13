@@ -1,30 +1,30 @@
 // <copyright file="CustomFieldsController.cs" company="APIMatic">
 // Copyright (c) APIMatic. All rights reserved.
 // </copyright>
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using AdvancedBilling.Standard;
+using AdvancedBilling.Standard.Exceptions;
+using AdvancedBilling.Standard.Http.Client;
+using AdvancedBilling.Standard.Models.Containers;
+using AdvancedBilling.Standard.Utilities;
+using APIMatic.Core;
+using APIMatic.Core.Http.Configuration;
+using APIMatic.Core.Types;
+using APIMatic.Core.Utilities;
+using APIMatic.Core.Utilities.Date.Xml;
+using Newtonsoft.Json.Converters;
+using System.Net.Http;
+
 namespace AdvancedBilling.Standard.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Dynamic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Exceptions;
-    using AdvancedBilling.Standard.Http.Client;
-    using AdvancedBilling.Standard.Models.Containers;
-    using AdvancedBilling.Standard.Utilities;
-    using APIMatic.Core;
-    using APIMatic.Core.Http.Configuration;
-    using APIMatic.Core.Types;
-    using APIMatic.Core.Utilities;
-    using APIMatic.Core.Utilities.Date.Xml;
-    using Newtonsoft.Json.Converters;
-    using System.Net.Http;
-
     /// <summary>
     /// CustomFieldsController.
     /// </summary>
@@ -375,7 +375,7 @@ namespace AdvancedBilling.Standard.Controllers
                 string name = null,
                 List<string> names = null,
                 CancellationToken cancellationToken = default)
-            => await CreateApiCall<VoidType>(ArraySerialization.Plain)
+            => await CreateApiCall<VoidType>(ArraySerialization.UnIndexed)
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Delete, "/{resource_type}/{resource_id}/metadata.json")
                   .WithAuth("BasicAuth")
@@ -422,7 +422,7 @@ namespace AdvancedBilling.Standard.Controllers
         public async Task<Models.PaginatedMetadata> ListMetadataAsync(
                 Models.ListMetadataInput input,
                 CancellationToken cancellationToken = default)
-            => await CreateApiCall<Models.PaginatedMetadata>(ArraySerialization.Plain)
+            => await CreateApiCall<Models.PaginatedMetadata>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/{resource_type}/metadata.json")
                   .WithAuth("BasicAuth")

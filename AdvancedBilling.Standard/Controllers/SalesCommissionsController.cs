@@ -1,27 +1,27 @@
 // <copyright file="SalesCommissionsController.cs" company="APIMatic">
 // Copyright (c) APIMatic. All rights reserved.
 // </copyright>
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using AdvancedBilling.Standard;
+using AdvancedBilling.Standard.Http.Client;
+using AdvancedBilling.Standard.Utilities;
+using APIMatic.Core;
+using APIMatic.Core.Types;
+using APIMatic.Core.Utilities;
+using APIMatic.Core.Utilities.Date.Xml;
+using Newtonsoft.Json.Converters;
+using System.Net.Http;
+
 namespace AdvancedBilling.Standard.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Dynamic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Http.Client;
-    using AdvancedBilling.Standard.Utilities;
-    using APIMatic.Core;
-    using APIMatic.Core.Types;
-    using APIMatic.Core.Utilities;
-    using APIMatic.Core.Utilities.Date.Xml;
-    using Newtonsoft.Json.Converters;
-    using System.Net.Http;
-
     /// <summary>
     /// SalesCommissionsController.
     /// </summary>
@@ -133,10 +133,10 @@ namespace AdvancedBilling.Standard.Controllers
                   .Parameters(_parameters => _parameters
                       .Template(_template => _template.Setup("seller_id", sellerId).Required())
                       .Template(_template => _template.Setup("sales_rep_id", salesRepId).Required())
-                      .Header(_header => _header.Setup("Authorization", (authorization != null) ? authorization : "Bearer <<apiKey>>"))
+                      .Header(_header => _header.Setup("Authorization", authorization ?? "Bearer <<apiKey>>"))
                       .Query(_query => _query.Setup("live_mode", liveMode))
-                      .Query(_query => _query.Setup("page", (page != null) ? page : 1))
-                      .Query(_query => _query.Setup("per_page", (perPage != null) ? perPage : 100))))
+                      .Query(_query => _query.Setup("page", page ?? 1))
+                      .Query(_query => _query.Setup("per_page", perPage ?? 100))))
               .ResponseHandler(_responseHandler => _responseHandler
                   .NullOn404())
               .ExecuteAsync(cancellationToken).ConfigureAwait(false);

@@ -1,19 +1,18 @@
 // <copyright file="AdvancedBillingClient.cs" company="APIMatic">
 // Copyright (c) APIMatic. All rights reserved.
 // </copyright>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using APIMatic.Core;
+using APIMatic.Core.Authentication;
+using AdvancedBilling.Standard.Authentication;
+using AdvancedBilling.Standard.Controllers;
+using AdvancedBilling.Standard.Http.Client;
+using AdvancedBilling.Standard.Utilities;
+
 namespace AdvancedBilling.Standard
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using APIMatic.Core;
-    using APIMatic.Core.Authentication;
-    using APIMatic.Core.Types;
-    using AdvancedBilling.Standard.Authentication;
-    using AdvancedBilling.Standard.Controllers;
-    using AdvancedBilling.Standard.Http.Client;
-    using AdvancedBilling.Standard.Utilities;
-
     /// <summary>
     /// The gateway for the SDK. This class acts as a factory for Controller and
     /// holds the configuration of the SDK.
@@ -39,7 +38,8 @@ namespace AdvancedBilling.Standard
         };
 
         private readonly GlobalConfiguration globalConfiguration;
-        private const string userAgent = "AB SDK DotNet:2.4.69 on OS {os-info}";
+        private const string userAgent = "AB SDK DotNet:9.1.1 on OS {os-info}";
+        private readonly HttpCallback httpCallback;
         private readonly Lazy<APIExportsController> aPIExports;
         private readonly Lazy<AdvanceInvoiceController> advanceInvoice;
         private readonly Lazy<BillingPortalController> billingPortal;
@@ -77,11 +77,13 @@ namespace AdvancedBilling.Standard
             string subdomain,
             string domain,
             BasicAuthModel basicAuthModel,
+            HttpCallback httpCallback,
             IHttpClientConfiguration httpClientConfiguration)
         {
             this.Environment = environment;
             this.Subdomain = subdomain;
             this.Domain = domain;
+            this.httpCallback = httpCallback;
             this.HttpClientConfiguration = httpClientConfiguration;
             BasicAuthModel = basicAuthModel;
             var basicAuthManager = new BasicAuthManager(basicAuthModel);
@@ -89,6 +91,7 @@ namespace AdvancedBilling.Standard
                 .AuthManagers(new Dictionary<string, AuthManager> {
                     {"BasicAuth", basicAuthManager},
                 })
+                .ApiCallback(httpCallback)
                 .HttpConfiguration(httpClientConfiguration)
                 .ServerUrls(EnvironmentsMap[environment], Server.Default)
                 .Parameters(globalParameter => globalParameter
@@ -341,6 +344,10 @@ namespace AdvancedBilling.Standard
         /// </summary>
         public string Domain { get; }
 
+        /// <summary>
+        /// Gets http callback.
+        /// </summary>
+        public HttpCallback HttpCallback => this.httpCallback;
 
         /// <summary>
         /// Gets the credentials to use with BasicAuth.
@@ -373,6 +380,7 @@ namespace AdvancedBilling.Standard
                 .Environment(this.Environment)
                 .Subdomain(this.Subdomain)
                 .Domain(this.Domain)
+                .HttpCallback(httpCallback)
                 .HttpClientConfig(config => config.Build());
 
             if (BasicAuthModel != null)
@@ -442,6 +450,7 @@ namespace AdvancedBilling.Standard
             private string domain = "chargify.com";
             private BasicAuthModel basicAuthModel = new BasicAuthModel();
             private HttpClientConfiguration.Builder httpClientConfig = new HttpClientConfiguration.Builder();
+            private HttpCallback httpCallback;
 
             /// <summary>
             /// Sets credentials for BasicAuth.
@@ -524,7 +533,18 @@ namespace AdvancedBilling.Standard
                 return this;
             }
 
-           
+
+
+            /// <summary>
+            /// Sets the HttpCallback for the Builder.
+            /// </summary>
+            /// <param name="httpCallback"> http callback. </param>
+            /// <returns>Builder.</returns>
+            public Builder HttpCallback(HttpCallback httpCallback)
+            {
+                this.httpCallback = httpCallback;
+                return this;
+            }
 
             /// <summary>
             /// Creates an object of the AdvancedBillingClient using the values provided for the builder.
@@ -532,7 +552,6 @@ namespace AdvancedBilling.Standard
             /// <returns>AdvancedBillingClient.</returns>
             public AdvancedBillingClient Build()
             {
-
                 if (basicAuthModel.Username == null || basicAuthModel.Password == null)
                 {
                     basicAuthModel = null;
@@ -542,6 +561,7 @@ namespace AdvancedBilling.Standard
                     subdomain,
                     domain,
                     basicAuthModel,
+                    httpCallback,
                     httpClientConfig.Build());
             }
         }

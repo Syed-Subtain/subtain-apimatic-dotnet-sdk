@@ -1,30 +1,30 @@
 // <copyright file="SubscriptionsController.cs" company="APIMatic">
 // Copyright (c) APIMatic. All rights reserved.
 // </copyright>
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using AdvancedBilling.Standard;
+using AdvancedBilling.Standard.Exceptions;
+using AdvancedBilling.Standard.Http.Client;
+using AdvancedBilling.Standard.Models.Containers;
+using AdvancedBilling.Standard.Utilities;
+using APIMatic.Core;
+using APIMatic.Core.Http.Configuration;
+using APIMatic.Core.Types;
+using APIMatic.Core.Utilities;
+using APIMatic.Core.Utilities.Date.Xml;
+using Newtonsoft.Json.Converters;
+using System.Net.Http;
+
 namespace AdvancedBilling.Standard.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Dynamic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using AdvancedBilling.Standard;
-    using AdvancedBilling.Standard.Exceptions;
-    using AdvancedBilling.Standard.Http.Client;
-    using AdvancedBilling.Standard.Models.Containers;
-    using AdvancedBilling.Standard.Utilities;
-    using APIMatic.Core;
-    using APIMatic.Core.Http.Configuration;
-    using APIMatic.Core.Types;
-    using APIMatic.Core.Utilities;
-    using APIMatic.Core.Utilities.Date.Xml;
-    using Newtonsoft.Json.Converters;
-    using System.Net.Http;
-
     /// <summary>
     /// SubscriptionsController.
     /// </summary>
@@ -1171,7 +1171,7 @@ namespace AdvancedBilling.Standard.Controllers
                 int ack,
                 List<Models.SubscriptionPurgeType> cascade = null,
                 CancellationToken cancellationToken = default)
-            => await CreateApiCall<VoidType>(ArraySerialization.Plain)
+            => await CreateApiCall<VoidType>()
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Post, "/subscriptions/{subscription_id}/purge.json")
                   .WithAuth("BasicAuth")
@@ -1209,7 +1209,7 @@ namespace AdvancedBilling.Standard.Controllers
                 string subscriptionId,
                 List<Models.SubscriptionInclude> include = null,
                 CancellationToken cancellationToken = default)
-            => await CreateApiCall<Models.SubscriptionResponse>(ArraySerialization.Plain)
+            => await CreateApiCall<Models.SubscriptionResponse>(ArraySerialization.UnIndexed)
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/subscriptions/{subscription_id}.json")
                   .WithAuth("BasicAuth")
@@ -1337,7 +1337,7 @@ namespace AdvancedBilling.Standard.Controllers
         public async Task<List<Models.SubscriptionResponse>> ListSubscriptionsAsync(
                 Models.ListSubscriptionsInput input,
                 CancellationToken cancellationToken = default)
-            => await CreateApiCall<List<Models.SubscriptionResponse>>()
+            => await CreateApiCall<List<Models.SubscriptionResponse>>(ArraySerialization.UnIndexed)
               .RequestBuilder(_requestBuilder => _requestBuilder
                   .Setup(HttpMethod.Get, "/subscriptions.json")
                   .WithAuth("BasicAuth")
